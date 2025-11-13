@@ -449,7 +449,7 @@ Nilson Morales
 ![Configuration Tool](screenshots/config-tool.png)
 
 ### Video Demo
-[![PyMenuPup Demo - Full Walkthrough](https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
+[![PyMenuPup Demo - Full Walkthrough](https://img.youtube.com/vi/CV71anlLqe8/maxresdefault.jpg)](https://www.youtube.com/watch?v=CV71anlLqe8)
 *Click to watch the full demo on YouTube*
 
 ---
