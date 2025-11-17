@@ -1223,22 +1223,38 @@ class ArcMenuLauncher(Gtk.Window):
         # LLAMADA A LA FUNCIÓN (IGUAL INDENTACIÓN QUE 'def load_profile_image')
         load_profile_image() # <--- Nivel 1 de indentación (ej: 8 espacios)
 
+            
+# Dentro del método create_header()
         
         def on_profile_clicked(button):
             try:
                 GLib.timeout_add(100, lambda: Gtk.main_quit())
-                profile_manager_path = self.config['paths']['profile_manager']
-                if os.path.exists(profile_manager_path):
-                    subprocess.Popen([profile_manager_path],
-                                    stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.DEVNULL)
+                
+                # Rutas posibles
+                bin_path = "/usr/local/bin/ProfileManager"
+                py_path = "/usr/local/bin/ProfileManager.py"
+                
+                # Detecta automáticamente qué usar
+                if os.path.isfile(bin_path) and os.access(bin_path, os.X_OK):
+                    # Ejecutable Nuitka
+                    subprocess.Popen([bin_path],
+                                   stdout=subprocess.DEVNULL,
+                                   stderr=subprocess.DEVNULL)
+                    print(f"Lanzando Profile Manager (bin): {bin_path}")
+                
+                elif os.path.isfile(py_path) and os.access(py_path, os.X_OK):
+                    # Script Python
+                    subprocess.Popen(["python3", py_path],
+                                   stdout=subprocess.DEVNULL,
+                                   stderr=subprocess.DEVNULL)
+                    print(f"Lanzando Profile Manager (script): {py_path}")
+                
                 else:
-                    subprocess.Popen(["python3", profile_manager_path], 
-                                    stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.DEVNULL)
-                print(f"Launching Profile Manager: {profile_manager_path}")
+                    print("No se encontró ProfileManager ni ProfileManager.py")
+                    
             except Exception as e:
                 print(f"Error opening Profile Manager: {e}")
+        
         profile_button.set_tooltip_text(TR["Select avatar"])
         profile_button.connect("clicked", on_profile_clicked)
         profile_box.pack_start(profile_button, False, False, 0)
@@ -2134,35 +2150,63 @@ class ArcMenuLauncher(Gtk.Window):
             print(f"Error launching {app_info.get('Name', 'Unknown')}: {e}")
 
     def on_profile_clicked(self, button):
-        """Open ProfileManager when profile thumbnail is clicked"""
-        try:
-            GLib.timeout_add(100, lambda: Gtk.main_quit())
-            profile_manager_path = self.config['paths']['profile_manager']
-            if os.path.exists(profile_manager_path):
-                subprocess.Popen([profile_manager_path], 
-                               stdout=subprocess.DEVNULL,
-                               stderr=subprocess.DEVNULL)
-            else:
-                subprocess.Popen(["python3", profile_manager_path], 
-                               stdout=subprocess.DEVNULL,
-                               stderr=subprocess.DEVNULL)
-            print(f"Launching Profile Manager: {profile_manager_path}")
-        except Exception as e:
-            print(f"Error opening Profile Manager: {e}")
+            """Open ProfileManager when profile thumbnail is clicked"""
+            try:
+                GLib.timeout_add(100, lambda: Gtk.main_quit())
+                
+                # Rutas posibles
+                bin_path = "/usr/local/bin/ProfileManager"
+                py_path = "/usr/local/bin/ProfileManager.py"
+                
+                # Detecta automáticamente qué usar
+                if os.path.isfile(bin_path) and os.access(bin_path, os.X_OK):
+                    # Ejecutable Nuitka
+                    subprocess.Popen([bin_path],
+                                     stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.DEVNULL)
+                    print(f"Lanzando Profile Manager (bin): {bin_path}")
+                
+                elif os.path.isfile(py_path) and os.access(py_path, os.X_OK):
+                    # Script Python
+                    subprocess.Popen(["python3", py_path],
+                                     stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.DEVNULL)
+                    print(f"Lanzando Profile Manager (script): {py_path}")
+                
+                else:
+                    print("No se encontró ProfileManager ni ProfileManager.py")
+                    
+            except Exception as e:
+                print(f"Error opening Profile Manager: {e}")
             
     # Función que faltaba
     def on_config_clicked(self, button):
-        """Lanza el script de configuración."""
+        """Lanza el configurador en modo binario o script según esté disponible."""
         try:
-            # Cerrar la ventana del menú inmediatamente
             GLib.timeout_add(100, lambda: Gtk.main_quit())
-            
-            # Lanzar el script de configuración
-            config_script = "/usr/local/bin/pymenu-config.py"
-            subprocess.Popen(["python3", config_script],
-                             stdout=subprocess.DEVNULL,
-                             stderr=subprocess.DEVNULL)
-            print(f"Lanzando el configurador: {config_script}")
+    
+            # Rutas posibles
+            bin_path = "/usr/local/bin/pymenu-config"
+            py_path = "/usr/local/bin/pymenu-config.py"
+    
+            # Detecta automáticamente qué usar
+            if os.path.isfile(bin_path) and os.access(bin_path, os.X_OK):
+                # Ejecutable Nuitka
+                subprocess.Popen([bin_path],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL)
+                print(f"Lanzando configurador (bin): {bin_path}")
+    
+            elif os.path.isfile(py_path) and os.access(py_path, os.X_OK):
+                # Script Python
+                subprocess.Popen(["python3", py_path],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL)
+                print(f"Lanzando configurador (script): {py_path}")
+    
+            else:
+                print("No se encontró pymenu-config ni pymenu-config.py")
+    
         except Exception as e:
             print(f"Error al lanzar el configurador: {e}")
 
@@ -2170,16 +2214,29 @@ class ArcMenuLauncher(Gtk.Window):
         """Run shutdown command"""
         try:
             GLib.timeout_add(100, lambda: Gtk.main_quit())
-            shutdown_cmd_path = self.config['paths']['shutdown_cmd']
-            if os.path.exists(shutdown_cmd_path):
-                subprocess.Popen([shutdown_cmd_path],
+            
+            # Rutas posibles
+            bin_path = "/usr/local/bin/apagado-avatar"
+            py_path = "/usr/local/bin/apagado-avatar.py"
+            
+            # Detecta automáticamente qué usar
+            if os.path.isfile(bin_path) and os.access(bin_path, os.X_OK):
+                # Ejecutable Nuitka
+                subprocess.Popen([bin_path],
                                stdout=subprocess.DEVNULL,
                                stderr=subprocess.DEVNULL)
+                print(f"Lanzando shutdown (bin): {bin_path}")
+            
+            elif os.path.isfile(py_path) and os.access(py_path, os.X_OK):
+                # Script Python
+                subprocess.Popen(["python3", py_path],
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL)
+                print(f"Lanzando shutdown (script): {py_path}")
+            
             else:
-                subprocess.Popen(["python3", shutdown_cmd_path],
-                               stdout=subprocess.DEVNULL,
-                               stderr=subprocess.DEVNULL)
-            print(f"Launching shutdown command: {shutdown_cmd_path}")
+                print("No se encontró apagado-avatar ni apagado-avatar.py")
+                
         except Exception as e:
             print(f"Failed to run shutdown command: {e}")
             
