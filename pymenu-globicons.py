@@ -220,7 +220,8 @@ class ConfigManager:
                 "profile_pic_size": 64,
                 "profile_pic_shape": "square", 
                 "hide_category_text": False,
-                "category_icon_size": 16
+                "category_icon_size": 16,
+                "header_layout": "left"
             },
             "font": {
                 "family": "Sans 12",
@@ -1180,7 +1181,8 @@ class ArcMenuLauncher(Gtk.Window):
         header_box.set_margin_bottom(1)
         header_box.set_margin_start(5)
         header_box.set_margin_end(5)
-
+    
+        # === CREAR EL PERFIL ===
         profile_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         profile_box.set_valign(Gtk.Align.CENTER)
         
@@ -1196,70 +1198,46 @@ class ArcMenuLauncher(Gtk.Window):
         self.profile_image.set_halign(Gtk.Align.CENTER)
         self.profile_image.set_valign(Gtk.Align.CENTER)
         
-        # --- INICIO DE LA FUNCIÓN ANIDADA ---
-        def load_profile_image(): # <--- Nivel 1 de indentación dentro de create_header (ej: 8 espacios)
+        def load_profile_image():
             profile_pic_path = self.config['paths']['profile_pic']
             profile_pic_size = self.config['window'].get('profile_pic_size', 128)
-            
-            # Obtener la forma configurada.
             profile_pic_shape = self.config['window'].get('profile_pic_shape', 'square')
             
-            try: # <--- Nivel 2 de indentación (ej: 12 espacios)
-                # GdkPixbuf.new_from_file_at_scale ya se encarga de cargar y escalar
+            try:
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(profile_pic_path, profile_pic_size, profile_pic_size, True)
                 
-                # Lógica de la Forma
-                if profile_pic_shape == 'circular': # <--- Nivel 3 de indentación (ej: 16 espacios)
+                if profile_pic_shape == 'circular':
                     pixbuf = apply_circular_mask(pixbuf)
                     
                 self.profile_image.set_from_pixbuf(pixbuf)
                 
-            except Exception as e: # <--- Nivel 2 de indentación (IGUAL que 'try')
+            except Exception as e:
                 print(f"Failed to load profile picture: {e}")
-                # Cargar icono por defecto si falla la imagen
                 self.profile_image.set_from_icon_name("avatar-default", Gtk.IconSize.DIALOG)
-        # --- FIN DE LA FUNCIÓN ANIDADA ---
         
-        # LLAMADA A LA FUNCIÓN (IGUAL INDENTACIÓN QUE 'def load_profile_image')
-        load_profile_image() # <--- Nivel 1 de indentación (ej: 8 espacios)
-
-            
-# Dentro del método create_header()
-        
+        load_profile_image()
+    
         def on_profile_clicked(button):
             try:
                 GLib.timeout_add(100, lambda: Gtk.main_quit())
-                
-                # Rutas posibles
-                bin_path = "/usr/local/bin/ProfileManager"
-                py_path = "/usr/local/bin/ProfileManager.py"
-                
-                # Detecta automáticamente qué usar
-                if os.path.isfile(bin_path) and os.access(bin_path, os.X_OK):
-                    # Ejecutable Nuitka
-                    subprocess.Popen([bin_path],
-                                   stdout=subprocess.DEVNULL,
-                                   stderr=subprocess.DEVNULL)
-                    print(f"Lanzando Profile Manager (bin): {bin_path}")
-                
-                elif os.path.isfile(py_path) and os.access(py_path, os.X_OK):
-                    # Script Python
-                    subprocess.Popen(["python3", py_path],
-                                   stdout=subprocess.DEVNULL,
-                                   stderr=subprocess.DEVNULL)
-                    print(f"Lanzando Profile Manager (script): {py_path}")
-                
+                profile_manager_path = self.config['paths']['profile_manager']
+                if os.path.exists(profile_manager_path):
+                    subprocess.Popen([profile_manager_path],
+                                    stdout=subprocess.DEVNULL,
+                                    stderr=subprocess.DEVNULL)
                 else:
-                    print("No se encontró ProfileManager ni ProfileManager.py")
-                    
+                    subprocess.Popen(["python3", profile_manager_path], 
+                                    stdout=subprocess.DEVNULL,
+                                    stderr=subprocess.DEVNULL)
+                print(f"Launching Profile Manager: {profile_manager_path}")
             except Exception as e:
                 print(f"Error opening Profile Manager: {e}")
         
         profile_button.set_tooltip_text(TR["Select avatar"])
         profile_button.connect("clicked", on_profile_clicked)
         profile_box.pack_start(profile_button, False, False, 0)
-        header_box.pack_start(profile_box, False, False, 0)
         
+        # === CREAR LA INFO DEL SISTEMA ===
         system_info_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
         system_info_box.set_valign(Gtk.Align.CENTER)
         
@@ -1304,8 +1282,32 @@ class ArcMenuLauncher(Gtk.Window):
         hostname_label.set_max_width_chars(30)
         system_info_box.pack_start(hostname_label, False, False, 0)
         
-        header_box.pack_start(system_info_box, True, True, 0)
+    # === APLICAR EL LAYOUT SEGÚN CONFIGURACIÓN ===
+        header_layout = self.config['window'].get('header_layout', 'left')
         
+        if header_layout == 'right':
+            # Avatar a la derecha, info a la izquierda
+            header_box.pack_start(system_info_box, True, True, 0)
+            header_box.pack_start(profile_box, False, False, 0)
+        elif header_layout == 'center':
+            # Avatar centrado con info del sistema a ambos lados
+            # Crear espaciadores para centrar el avatar
+            left_spacer = Gtk.Box()
+            right_spacer = Gtk.Box()
+            
+            header_box.pack_start(left_spacer, True, True, 0)
+            header_box.pack_start(profile_box, False, False, 0)
+            header_box.pack_start(right_spacer, True, True, 0)
+            
+            # Agregar la info del sistema al espaciador izquierdo
+            system_info_box.set_halign(Gtk.Align.START)
+            left_spacer.pack_start(system_info_box, False, False, 0)
+        else:
+            # Avatar a la izquierda, info a la derecha (layout original)
+            header_box.pack_start(profile_box, False, False, 0)
+            header_box.pack_start(system_info_box, True, True, 0)
+        
+        # Monitor de cambios en el archivo de perfil
         profile_file = Gio.File.new_for_path(self.config['paths']['profile_pic'])
         monitor = profile_file.monitor_file(Gio.FileMonitorFlags.NONE, None)
         
@@ -2150,63 +2152,55 @@ class ArcMenuLauncher(Gtk.Window):
             print(f"Error launching {app_info.get('Name', 'Unknown')}: {e}")
 
     def on_profile_clicked(self, button):
-            """Open ProfileManager when profile thumbnail is clicked"""
-            try:
-                GLib.timeout_add(100, lambda: Gtk.main_quit())
-                
-                # Rutas posibles
-                bin_path = "/usr/local/bin/ProfileManager"
-                py_path = "/usr/local/bin/ProfileManager.py"
-                
-                # Detecta automáticamente qué usar
-                if os.path.isfile(bin_path) and os.access(bin_path, os.X_OK):
-                    # Ejecutable Nuitka
-                    subprocess.Popen([bin_path],
-                                     stdout=subprocess.DEVNULL,
-                                     stderr=subprocess.DEVNULL)
-                    print(f"Lanzando Profile Manager (bin): {bin_path}")
-                
-                elif os.path.isfile(py_path) and os.access(py_path, os.X_OK):
-                    # Script Python
-                    subprocess.Popen(["python3", py_path],
-                                     stdout=subprocess.DEVNULL,
-                                     stderr=subprocess.DEVNULL)
-                    print(f"Lanzando Profile Manager (script): {py_path}")
-                
-                else:
-                    print("No se encontró ProfileManager ni ProfileManager.py")
+        """Open ProfileManager when profile thumbnail is clicked"""
+        try:
+            GLib.timeout_add(100, lambda: Gtk.main_quit())
+            profile_manager_path = self.config['paths']['profile_manager']
+            
+            # Intentar primero con el binario (sin extensión)
+            profile_manager_binary = profile_manager_path.replace('.py', '')
+            
+            if os.path.exists(profile_manager_binary) and os.access(profile_manager_binary, os.X_OK):
+                # Si existe el binario y es ejecutable, usarlo
+                subprocess.Popen([profile_manager_binary], 
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL)
+                print(f"Launching Profile Manager (binary): {profile_manager_binary}")
+            elif os.path.exists(profile_manager_path):
+                # Si no, intentar con el archivo .py
+                subprocess.Popen(["python3", profile_manager_path], 
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL)
+                print(f"Launching Profile Manager (python): {profile_manager_path}")
+            else:
+                # Si ninguno existe, intentar ejecutar directamente por si está en PATH
+                try:
+                    subprocess.Popen([profile_manager_binary], 
+                                   stdout=subprocess.DEVNULL,
+                                   stderr=subprocess.DEVNULL)
+                    print(f"Launching Profile Manager from PATH: {profile_manager_binary}")
+                except FileNotFoundError:
+                    subprocess.Popen(["python3", profile_manager_path], 
+                                   stdout=subprocess.DEVNULL,
+                                   stderr=subprocess.DEVNULL)
+                    print(f"Launching Profile Manager (fallback): {profile_manager_path}")
                     
-            except Exception as e:
-                print(f"Error opening Profile Manager: {e}")
+        except Exception as e:
+            print(f"Error opening Profile Manager: {e}")
             
     # Función que faltaba
     def on_config_clicked(self, button):
-        """Lanza el configurador en modo binario o script según esté disponible."""
+        """Lanza el script de configuración."""
         try:
+            # Cerrar la ventana del menú inmediatamente
             GLib.timeout_add(100, lambda: Gtk.main_quit())
-    
-            # Rutas posibles
-            bin_path = "/usr/local/bin/pymenu-config"
-            py_path = "/usr/local/bin/pymenu-config.py"
-    
-            # Detecta automáticamente qué usar
-            if os.path.isfile(bin_path) and os.access(bin_path, os.X_OK):
-                # Ejecutable Nuitka
-                subprocess.Popen([bin_path],
-                                 stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL)
-                print(f"Lanzando configurador (bin): {bin_path}")
-    
-            elif os.path.isfile(py_path) and os.access(py_path, os.X_OK):
-                # Script Python
-                subprocess.Popen(["python3", py_path],
-                                 stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL)
-                print(f"Lanzando configurador (script): {py_path}")
-    
-            else:
-                print("No se encontró pymenu-config ni pymenu-config.py")
-    
+            
+            # Lanzar el script de configuración
+            config_script = "/usr/local/bin/pymenu-config.py"
+            subprocess.Popen(["python3", config_script],
+                             stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL)
+            print(f"Lanzando el configurador: {config_script}")
         except Exception as e:
             print(f"Error al lanzar el configurador: {e}")
 
@@ -2214,29 +2208,16 @@ class ArcMenuLauncher(Gtk.Window):
         """Run shutdown command"""
         try:
             GLib.timeout_add(100, lambda: Gtk.main_quit())
-            
-            # Rutas posibles
-            bin_path = "/usr/local/bin/apagado-avatar"
-            py_path = "/usr/local/bin/apagado-avatar.py"
-            
-            # Detecta automáticamente qué usar
-            if os.path.isfile(bin_path) and os.access(bin_path, os.X_OK):
-                # Ejecutable Nuitka
-                subprocess.Popen([bin_path],
+            shutdown_cmd_path = self.config['paths']['shutdown_cmd']
+            if os.path.exists(shutdown_cmd_path):
+                subprocess.Popen([shutdown_cmd_path],
                                stdout=subprocess.DEVNULL,
                                stderr=subprocess.DEVNULL)
-                print(f"Lanzando shutdown (bin): {bin_path}")
-            
-            elif os.path.isfile(py_path) and os.access(py_path, os.X_OK):
-                # Script Python
-                subprocess.Popen(["python3", py_path],
-                               stdout=subprocess.DEVNULL,
-                               stderr=subprocess.DEVNULL)
-                print(f"Lanzando shutdown (script): {py_path}")
-            
             else:
-                print("No se encontró apagado-avatar ni apagado-avatar.py")
-                
+                subprocess.Popen(["python3", shutdown_cmd_path],
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL)
+            print(f"Launching shutdown command: {shutdown_cmd_path}")
         except Exception as e:
             print(f"Failed to run shutdown command: {e}")
             

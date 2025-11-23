@@ -64,6 +64,10 @@ LANG = {
         'Categories': 'Categories',
         'Excluded categories:': 'Excluded categories:',
         'Select categories to hide from menu': 'Select categories to hide from menu',
+        'Header layout:': 'Header layout:',
+        'Avatar left': 'Avatar left',
+        'Avatar right': 'Avatar right',
+        'Avatar center': 'Avatar center',
         'Use system theme:': 'Use system theme:',
         'Categories background:': 'Categories background:'
     },
@@ -121,6 +125,10 @@ LANG = {
         'Excluded categories:': 'Categorías excluidas:',
         'Use system theme:': 'Usar tema del sistema:',
         'Select categories to hide from menu': 'Selecciona categorías para ocultar del menú',
+        'Header layout:': 'Diseño del encabezado:',
+        'Avatar left': 'Avatar izquierda',
+        'Avatar right': 'Avatar derecha',
+        'Avatar center': 'Avatar centrado',
         'Categories background:': 'Fondo de categorías:',
                 # Nuevas traducciones para las categorías
         'Desktop': 'Escritorio',
@@ -333,45 +341,56 @@ class ConfigWindow(Gtk.Window):
         hide_header_check.connect("toggled", self.on_check_toggled, "window", "hide_header")
         grid.attach(hide_header_check, 1, 3, 1, 1)
         
-        grid.attach(Gtk.Label(label=TR['Hide categories text:']), 0, 4, 1, 1)
+        # Header layout
+        grid.attach(Gtk.Label(label=TR['Header layout:']), 0, 4, 1, 1)
+        header_layout_combo = Gtk.ComboBoxText()
+        header_layout_combo.append("left", TR['Avatar left'])
+        header_layout_combo.append("center", TR['Avatar center']) 
+        header_layout_combo.append("right", TR['Avatar right'])
+        current_layout = self.config['window'].get('header_layout', 'left')
+        header_layout_combo.set_active_id(current_layout)
+        header_layout_combo.connect("changed", self.on_combobox_changed, 'window', 'header_layout')
+        grid.attach(header_layout_combo, 1, 4, 1, 1)
+        
+        grid.attach(Gtk.Label(label=TR['Hide categories text:']), 0, 5, 1, 1)
         hide_cat_text_check = Gtk.CheckButton()
         hide_cat_text_check.set_active(self.config['window'].get('hide_category_text', False))
         hide_cat_text_check.connect("toggled", self.on_checkbox_toggled, 'window', 'hide_category_text')
-        grid.attach(hide_cat_text_check, 1, 4, 1, 1)
+        grid.attach(hide_cat_text_check, 1, 5, 1, 1)
         
-        grid.attach(Gtk.Label(label=TR['Hide quick access:']), 0, 5, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Hide quick access:']), 0, 6, 1, 1)
         hide_quick_check = Gtk.CheckButton()
         hide_quick_check.set_active(self.config['window'].get('hide_quick_access', False))
         hide_quick_check.connect("toggled", self.on_check_toggled, "window", "hide_quick_access")
-        grid.attach(hide_quick_check, 1, 5, 1, 1)
+        grid.attach(hide_quick_check, 1, 6, 1, 1)
         
-        grid.attach(Gtk.Label(label=TR['Hide social networks:']), 0, 6, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Hide social networks:']), 0, 7, 1, 1)
         hide_social_check = Gtk.CheckButton()
         hide_social_check.set_active(self.config['window'].get('hide_social_networks', False))
         hide_social_check.connect("toggled", self.on_check_toggled, "window", "hide_social_networks")
-        grid.attach(hide_social_check, 1, 6, 1, 1)        
+        grid.attach(hide_social_check, 1, 7, 1, 1)        
 
         # Los demás widgets ahora tienen posiciones actualizadas
-        grid.attach(Gtk.Label(label=TR['Icon size:']), 0, 7, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Icon size:']), 0, 8, 1, 1)
         icon_size_spin = Gtk.SpinButton.new_with_range(16, 64, 8)
         icon_size_spin.set_value(self.config['window'].get('icon_size', 32))
         icon_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "icon_size")
-        grid.attach(icon_size_spin, 1, 7, 1, 1)
+        grid.attach(icon_size_spin, 1, 8, 1, 1)
 
-        grid.attach(Gtk.Label(label=TR['Category icon size:']), 0, 8, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Category icon size:']), 0, 9, 1, 1)
         category_icon_size_spin = Gtk.SpinButton.new_with_range(16, 64, 8)
         category_icon_size_spin.set_value(self.config['window'].get('category_icon_size', 24))
         category_icon_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "category_icon_size")
-        grid.attach(category_icon_size_spin, 1, 8, 1, 1)
+        grid.attach(category_icon_size_spin, 1, 9, 1, 1)
 
-        grid.attach(Gtk.Label(label=TR['Profile pic size:']), 0, 9, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Profile pic size:']), 0, 10, 1, 1)
         profile_pic_size_spin = Gtk.SpinButton.new_with_range(64, 256, 8)
         profile_pic_size_spin.set_value(self.config['window'].get('profile_pic_size', 128))
         profile_pic_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "profile_pic_size")
-        grid.attach(profile_pic_size_spin, 1, 9, 1, 1)
+        grid.attach(profile_pic_size_spin, 1, 10, 1, 1)
 
         # ------------------- INICIO DE LA NUEVA OPCIÓN (FILA 10) -------------------
-        grid.attach(Gtk.Label(label=TR['Profile pic shape:']), 0, 10, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Profile pic shape:']), 0, 11, 1, 1)
         
         # ComboBox para la forma (Cuadrada/Circular)
         combobox = Gtk.ComboBoxText()
@@ -384,12 +403,12 @@ class ConfigWindow(Gtk.Window):
 
         # Conectar al método genérico de cambio (que debe existir en tu clase ConfigWindow)
         combobox.connect("changed", self.on_combobox_changed, 'window', 'profile_pic_shape')
-        grid.attach(combobox, 1, 10, 1, 1)
+        grid.attach(combobox, 1, 11, 1, 1)
         # ------------------- FIN DE LA NUEVA OPCIÓN (FILA 10) -------------------
 
 
         # El siguiente widget, alineación horizontal, se mueve a la FILA 11
-        grid.attach(Gtk.Label(label=TR['Horizontal alignment:']), 0, 11, 1, 1) # <--- CAMBIO DE FILA 10 A 11
+        grid.attach(Gtk.Label(label=TR['Horizontal alignment:']), 0, 12, 1, 1) # <--- CAMBIO DE FILA 10 A 11
         halign_combo = Gtk.ComboBoxText()
         halign_options = ["center", "left", "right"]
         for option in halign_options:
@@ -401,7 +420,7 @@ class ConfigWindow(Gtk.Window):
         except ValueError:
             halign_combo.set_active(0)
         halign_combo.connect("changed", self.on_combo_changed, "window", "halign")
-        grid.attach(halign_combo, 1, 11, 1, 1) # <--- CAMBIO DE FILA 10 A 11
+        grid.attach(halign_combo, 1, 12, 1, 1) # <--- CAMBIO DE FILA 10 A 11
 
         return grid
         
