@@ -60,6 +60,13 @@ LANG = {
         'Excluded categories:': 'Excluded categories:',
         'Select categories to hide from menu': 'Select categories to hide from menu',
         'Use system theme:': 'Use system theme:',
+        'Profile pic shape:': 'Profile pic shape:',
+        'square': 'Square',
+        'circular': 'Circular',
+        'Header layout:': 'Header layout:',
+        'Avatar left': 'Avatar left',
+        'Avatar right': 'Avatar right',
+        'Avatar center': 'Avatar center',
         'Categories background:': 'Categories background:'
     },
     'es': {
@@ -112,6 +119,13 @@ LANG = {
         'Select categories to hide from menu': 'Selecciona categorías para ocultar del menú',
         'Use system theme:': 'Usar tema del sistema:',
         'Categories background:': 'Fondo de categorías:',
+        'Profile pic shape:': 'Forma de foto de perfil:',
+        'square': 'Cuadrada',
+        'circular': 'Circular',
+        'Header layout:': 'Diseño del encabezado:',
+        'Avatar left': 'Avatar izquierda',
+        'Avatar right': 'Avatar derecha',
+        'Avatar center': 'Avatar centrado',
                 # Nuevas traducciones para las categorías
         'Desktop': 'Escritorio',
         'System': 'Sistema',
@@ -163,7 +177,9 @@ class ConfigManager:
                 "halign": "center",
                 "icon_size": 32,
                 "category_icon_size": 16,
-                "profile_pic_size": 128
+                "profile_pic_size": 128,
+                "profile_pic_shape": "square",   
+                "header_layout": "left"
             },
             "font": {
                 "family": "Terminess Nerd Font Propo",
@@ -287,64 +303,89 @@ class ConfigWindow(Gtk.Window):
     def create_window_tab(self):
         grid = Gtk.Grid(row_spacing=10, column_spacing=10)
         grid.set_border_width(10)
-
+    
         grid.attach(Gtk.Label(label=TR['Window width:']), 0, 0, 1, 1)
         width_spin = Gtk.SpinButton.new_with_range(100, 1500, 10)
         width_spin.set_value(self.config['window']['width'])
         width_spin.connect("value-changed", self.on_spin_button_changed, "window", "width")
         grid.attach(width_spin, 1, 0, 1, 1)
-
+    
         grid.attach(Gtk.Label(label=TR['Window height:']), 0, 1, 1, 1)
         height_spin = Gtk.SpinButton.new_with_range(100, 1500, 10)
         height_spin.set_value(self.config['window']['height'])
         height_spin.connect("value-changed", self.on_spin_button_changed, "window", "height")
         grid.attach(height_spin, 1, 1, 1, 1)
-
+    
         # Show window frame
         frame_label_text = TR['Show window frame:'] + '\n' + TR['(No transparency)']
         frame_label = Gtk.Label(label=frame_label_text)
         frame_label.set_halign(Gtk.Align.START)
         frame_label.set_line_wrap(True)
         grid.attach(frame_label, 0, 2, 1, 1)
-
+    
         decorated_check = Gtk.CheckButton()
         decorated_check.set_active(self.config['window'].get('decorated_window', True))
         decorated_check.connect("toggled", self.on_check_toggled, "window", "decorated_window")
         grid.attach(decorated_check, 1, 2, 1, 1)
-
-        # Hide header - NUEVA OPCIÓN AÑADIDA
+    
+        # Hide header
         grid.attach(Gtk.Label(label=TR['Hide header:']), 0, 3, 1, 1)
         hide_header_check = Gtk.CheckButton()
         hide_header_check.set_active(self.config['window'].get('hide_header', False))
         hide_header_check.connect("toggled", self.on_check_toggled, "window", "hide_header")
         grid.attach(hide_header_check, 1, 3, 1, 1)
         
-        grid.attach(Gtk.Label(label=TR['Hide categories text:']), 0, 4, 1, 1)
+        # Header layout - NUEVO
+        grid.attach(Gtk.Label(label=TR['Header layout:']), 0, 4, 1, 1)
+        header_layout_combo = Gtk.ComboBoxText()
+        header_layout_combo.append("left", TR['Avatar left'])
+        header_layout_combo.append("center", TR['Avatar center'])
+        header_layout_combo.append("right", TR['Avatar right'])
+        current_layout = self.config['window'].get('header_layout', 'left')
+        header_layout_combo.set_active_id(current_layout)
+        header_layout_combo.connect("changed", self.on_combobox_changed, 'window', 'header_layout')
+        grid.attach(header_layout_combo, 1, 4, 1, 1)
+        
+        # Hide categories text
+        grid.attach(Gtk.Label(label=TR['Hide categories text:']), 0, 5, 1, 1)
         hide_cat_text_check = Gtk.CheckButton()
         hide_cat_text_check.set_active(self.config['window'].get('hide_category_text', False))
         hide_cat_text_check.connect("toggled", self.on_checkbox_toggled, 'window', 'hide_category_text')
-        grid.attach(hide_cat_text_check, 1, 4, 1, 1)
-
-        # Los demás widgets ahora tienen posiciones actualizadas
-        grid.attach(Gtk.Label(label=TR['Icon size:']), 0, 5, 1, 1)
+        grid.attach(hide_cat_text_check, 1, 5, 1, 1)
+    
+        # Icon size
+        grid.attach(Gtk.Label(label=TR['Icon size:']), 0, 6, 1, 1)
         icon_size_spin = Gtk.SpinButton.new_with_range(16, 64, 8)
         icon_size_spin.set_value(self.config['window'].get('icon_size', 32))
         icon_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "icon_size")
-        grid.attach(icon_size_spin, 1, 5, 1, 1)
-
+        grid.attach(icon_size_spin, 1, 6, 1, 1)
+    
+        # Category icon size
         grid.attach(Gtk.Label(label=TR['Category icon size:']), 0, 7, 1, 1)
         category_icon_size_spin = Gtk.SpinButton.new_with_range(16, 64, 8)
         category_icon_size_spin.set_value(self.config['window'].get('category_icon_size', 24))
         category_icon_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "category_icon_size")
         grid.attach(category_icon_size_spin, 1, 7, 1, 1)
-
+    
+        # Profile pic size
         grid.attach(Gtk.Label(label=TR['Profile pic size:']), 0, 8, 1, 1)
         profile_pic_size_spin = Gtk.SpinButton.new_with_range(64, 256, 8)
         profile_pic_size_spin.set_value(self.config['window'].get('profile_pic_size', 128))
         profile_pic_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "profile_pic_size")
         grid.attach(profile_pic_size_spin, 1, 8, 1, 1)
-
-        grid.attach(Gtk.Label(label=TR['Horizontal alignment:']), 0, 9, 1, 1)
+    
+        # Profile pic shape - NUEVO
+        grid.attach(Gtk.Label(label=TR['Profile pic shape:']), 0, 9, 1, 1)
+        shape_combo = Gtk.ComboBoxText()
+        shape_combo.append("square", TR['square'])
+        shape_combo.append("circular", TR['circular'])
+        current_shape = self.config['window'].get('profile_pic_shape', 'square')
+        shape_combo.set_active_id(current_shape)
+        shape_combo.connect("changed", self.on_combobox_changed, 'window', 'profile_pic_shape')
+        grid.attach(shape_combo, 1, 9, 1, 1)
+    
+        # Horizontal alignment
+        grid.attach(Gtk.Label(label=TR['Horizontal alignment:']), 0, 10, 1, 1)
         halign_combo = Gtk.ComboBoxText()
         halign_options = ["center", "left", "right"]
         for option in halign_options:
@@ -356,14 +397,22 @@ class ConfigWindow(Gtk.Window):
         except ValueError:
             halign_combo.set_active(0)
         halign_combo.connect("changed", self.on_combo_changed, "window", "halign")
-        grid.attach(halign_combo, 1, 9, 1, 1)
-
+        grid.attach(halign_combo, 1, 10, 1, 1)
+    
         return grid
         
     def on_check_toggled(self, check_button, category, key):
         """Handle Gtk.CheckButton toggle events and save the state."""
         self.config[category][key] = check_button.get_active()
-        self.config_manager.save_config(self.config)        
+        self.config_manager.save_config(self.config) 
+        
+    def on_combobox_changed(self, combobox, category, key):
+        """Manejar el cambio en un Gtk.ComboBoxText y guarda la nueva configuración,
+           usando el ID activo."""
+        selected_id = combobox.get_active_id()
+        if selected_id is not None:
+            self.config[category][key] = selected_id
+            self.config_manager.save_config(self.config)               
 
     def create_colors_tab(self):
         grid = Gtk.Grid(row_spacing=10, column_spacing=10)

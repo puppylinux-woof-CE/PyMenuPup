@@ -10,6 +10,7 @@ import shlex
 import json
 import urllib.parse
 import locale
+import cairo
 
 # === 🌍 Diccionario de Traducción ===
 LANG = {
@@ -192,7 +193,9 @@ class ConfigManager:
                 "icon_size": 32,
                 "profile_pic_size": 64,
                 "hide_category_text": False,
-                "category_icon_size": 16
+                "category_icon_size": 16,
+                "profile_pic_shape": "square",
+                "header_layout": "left" 
             },
             "font": {
                 "family": "Terminess Nerd Font Propo Bold 16",
@@ -263,6 +266,71 @@ class ConfigManager:
         with open(self.config_file, 'w') as f:
             json.dump(config_data, f, indent=4)
 
+def apply_circular_mask(pixbuf):
+    """Aplica una máscara circular a un GdkPixbuf, mostrando la imagen dentro del círculo."""
+    try:
+        width = pixbuf.get_width()
+        height = pixbuf.get_height()
+        
+        # Determinar el tamaño del cuadrado más pequeño
+        size = min(width, height)
+        
+        # 1. Asegurar que el pixbuf tiene canal alfa
+        if not pixbuf.get_has_alpha():
+            pixbuf = pixbuf.add_alpha(True, 0, 0, 0)
+        
+        # 2. Escalar a un cuadrado perfecto si no lo es
+        if width != height or width != size:
+            pixbuf = pixbuf.scale_simple(size, size, GdkPixbuf.InterpType.BILINEAR)
+            width = height = size
+        
+        # 3. Crear una superficie temporal para la máscara
+        mask_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, size, size)
+        mask_cr = cairo.Context(mask_surface)
+        
+        # Llenar de negro transparente
+        mask_cr.set_source_rgba(0, 0, 0, 0)
+        mask_cr.paint()
+        
+        # Dibujar un círculo blanco opaco en la máscara
+        center_x = size / 2.0
+        center_y = size / 2.0
+        radius = size / 2.0
+        
+        mask_cr.arc(center_x, center_y, radius, 0, 2 * 3.141592653589793)
+        mask_cr.set_source_rgba(1, 1, 1, 1)
+        mask_cr.fill()
+        
+        # 4. Convertir el pixbuf a una superficie Cairo
+        original_surface = Gdk.cairo_surface_create_from_pixbuf(pixbuf, 0, None)
+        
+        # 5. Crear la superficie final
+        final_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, size, size)
+        final_cr = cairo.Context(final_surface)
+        
+        # Dibujar la imagen original
+        final_cr.set_source_surface(original_surface, 0, 0)
+        final_cr.paint()
+        
+        # Aplicar la máscara usando el operador IN
+        final_cr.set_source_surface(mask_surface, 0, 0)
+        final_cr.set_operator(cairo.OPERATOR_DEST_IN)
+        final_cr.paint()
+        
+        # 6. Convertir la superficie final a GdkPixbuf
+        new_pixbuf = Gdk.pixbuf_get_from_surface(final_surface, 0, 0, size, size)
+        
+        if new_pixbuf:
+            return new_pixbuf
+        else:
+            print("⚠️ Advertencia: No se pudo crear pixbuf circular, devolviendo original")
+            return pixbuf
+        
+    except Exception as e:
+        print(f"❌ Error aplicando máscara circular: {e}")
+        import traceback
+        traceback.print_exc()
+        return pixbuf
 
 class JWMMenuParser:
     def __init__(self, jwm_file="/usr/share/jwm/jwm/jwmrc"):
@@ -716,6 +784,18 @@ class ArcMenuLauncher(Gtk.Window):
                 background-color: {colors['hover_background']};
                 color: {colors['text_normal']};
             }}
+            button.profile-circular-style {{
+                border-radius: 50%;
+                padding: 0; 
+                border: none;
+                min-width: 64px; 
+                min-height: 64px;
+            }}
+            
+            button.profile-circular-style:hover {{
+                background-color: rgba(255, 255, 255, 0.1);
+                box-shadow: none;
+            }}            
             """
             print("Using custom colors")
         
@@ -999,7 +1079,6 @@ class ArcMenuLauncher(Gtk.Window):
             self.search_entry.grab_focus()
         return False  # Don't repeat the timeout        
 
-        
     def create_header(self):
         """Create the top header with profile picture, OS, kernel, and hostname"""
         header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=50)
@@ -1008,27 +1087,41 @@ class ArcMenuLauncher(Gtk.Window):
         header_box.set_margin_start(5)
         header_box.set_margin_end(5)
     
+        # === CREAR EL PERFIL ===
         profile_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         profile_box.set_valign(Gtk.Align.CENTER)
         
         profile_button = Gtk.Button()
         profile_button.set_relief(Gtk.ReliefStyle.NONE)
+        profile_button.get_style_context().add_class('profile-button') 
+        
+        if self.config['window'].get('profile_pic_shape', 'square') == 'circular':
+            profile_button.get_style_context().add_class('profile-circular-style')
         
         self.profile_image = Gtk.Image()
         profile_button.add(self.profile_image)
+        self.profile_image.set_halign(Gtk.Align.CENTER)
+        self.profile_image.set_valign(Gtk.Align.CENTER)
         
         def load_profile_image():
             profile_pic_path = self.config['paths']['profile_pic']
             profile_pic_size = self.config['window'].get('profile_pic_size', 128)
+            profile_pic_shape = self.config['window'].get('profile_pic_shape', 'square')
+            
             try:
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(profile_pic_path, profile_pic_size, profile_pic_size, True)
+                
+                if profile_pic_shape == 'circular':
+                    pixbuf = apply_circular_mask(pixbuf)
+                    
                 self.profile_image.set_from_pixbuf(pixbuf)
+                
             except Exception as e:
                 print(f"Failed to load profile picture: {e}")
                 self.profile_image.set_from_icon_name("avatar-default", Gtk.IconSize.DIALOG)
         
         load_profile_image()
-        
+    
         def on_profile_clicked(button):
             try:
                 GLib.timeout_add(100, lambda: Gtk.main_quit())
@@ -1044,11 +1137,12 @@ class ArcMenuLauncher(Gtk.Window):
                 print(f"Launching Profile Manager: {profile_manager_path}")
             except Exception as e:
                 print(f"Error opening Profile Manager: {e}")
+        
         profile_button.set_tooltip_text(TR["Select avatar"])
         profile_button.connect("clicked", on_profile_clicked)
         profile_box.pack_start(profile_button, False, False, 0)
-        header_box.pack_start(profile_box, False, False, 0)
         
+        # === CREAR LA INFO DEL SISTEMA ===
         system_info_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
         system_info_box.set_valign(Gtk.Align.CENTER)
         
@@ -1056,7 +1150,7 @@ class ArcMenuLauncher(Gtk.Window):
         hostname = self.get_hostname()
         
         header_font_string = self.config['font']['family']
-        header_font_description = Pango.FontDescription(header_font_string)
+        header_font_description = Pango.FontDescription.from_string(header_font_string)
         
         use_gtk_theme = self.config['colors'].get('use_gtk_theme', False)
         
@@ -1093,8 +1187,31 @@ class ArcMenuLauncher(Gtk.Window):
         hostname_label.set_max_width_chars(30)
         system_info_box.pack_start(hostname_label, False, False, 0)
         
-        header_box.pack_start(system_info_box, True, True, 0)
+        # === APLICAR EL LAYOUT SEGÚN CONFIGURACIÓN ===
+        header_layout = self.config['window'].get('header_layout', 'left')
         
+        if header_layout == 'right':
+            # Avatar a la derecha, info a la izquierda
+            header_box.pack_start(system_info_box, True, True, 0)
+            header_box.pack_start(profile_box, False, False, 0)
+        elif header_layout == 'center':
+            # Avatar centrado con info del sistema a ambos lados
+            left_spacer = Gtk.Box()
+            right_spacer = Gtk.Box()
+            
+            header_box.pack_start(left_spacer, True, True, 0)
+            header_box.pack_start(profile_box, False, False, 0)
+            header_box.pack_start(right_spacer, True, True, 0)
+            
+            # Agregar la info del sistema al espaciador izquierdo
+            system_info_box.set_halign(Gtk.Align.START)
+            left_spacer.pack_start(system_info_box, False, False, 0)
+        else:
+            # Avatar a la izquierda, info a la derecha (layout original)
+            header_box.pack_start(profile_box, False, False, 0)
+            header_box.pack_start(system_info_box, True, True, 0)
+        
+        # Monitor de cambios en el archivo de perfil
         profile_file = Gio.File.new_for_path(self.config['paths']['profile_pic'])
         monitor = profile_file.monitor_file(Gio.FileMonitorFlags.NONE, None)
         
@@ -1105,7 +1222,6 @@ class ArcMenuLauncher(Gtk.Window):
         monitor.connect("changed", on_file_changed)
         
         return header_box
-
 
     def create_categories_sidebar(self):
         """Create categories sidebar with improved hover functionality"""
