@@ -221,7 +221,10 @@ class ConfigManager:
                 "profile_pic_shape": "square", 
                 "hide_category_text": False,
                 "category_icon_size": 16,
-                "header_layout": "left"
+                "header_layout": "left",
+               "hide_os_name": False,
+                "hide_kernel": False,
+                "hide_hostname": False
             },
             "font": {
                 "family": "Sans 12",
@@ -1249,38 +1252,44 @@ class ArcMenuLauncher(Gtk.Window):
         
         use_gtk_theme = self.config['colors'].get('use_gtk_theme', False)
         
-        os_label = Gtk.Label()
-        if use_gtk_theme:
-            os_label.set_markup(f'<b>{os_name}</b>')
-        else:
-            os_label.set_markup(f'<span color="{self.config["colors"]["text_header_os"]}"><b>{os_name}</b></span>')
-        os_label.override_font(header_font_description)
-        os_label.set_halign(Gtk.Align.START)
-        os_label.set_ellipsize(3)
-        os_label.set_max_width_chars(30)
-        system_info_box.pack_start(os_label, False, False, 0)
+        # OS Label - solo mostrar si no está oculto
+        if not self.config['window'].get('hide_os_name', False):
+            os_label = Gtk.Label()
+            if use_gtk_theme:
+                os_label.set_markup(f'<b>{os_name}</b>')
+            else:
+                os_label.set_markup(f'<span color="{self.config["colors"]["text_header_os"]}"><b>{os_name}</b></span>')
+            os_label.override_font(header_font_description)
+            os_label.set_halign(Gtk.Align.START)
+            os_label.set_ellipsize(3)
+            os_label.set_max_width_chars(30)
+            system_info_box.pack_start(os_label, False, False, 0)
         
-        kernel_label = Gtk.Label()
-        if use_gtk_theme:
-            kernel_label.set_markup(f' {kernel}')
-        else:
-            kernel_label.set_markup(f'<span color="{self.config["colors"]["text_header_kernel"]}"> {kernel}</span>')
-        kernel_label.override_font(header_font_description)
-        kernel_label.set_halign(Gtk.Align.START)
-        kernel_label.set_ellipsize(3)
-        kernel_label.set_max_width_chars(30)
-        system_info_box.pack_start(kernel_label, False, False, 0)
+        # Kernel Label - solo mostrar si no está oculto
+        if not self.config['window'].get('hide_kernel', False):
+            kernel_label = Gtk.Label()
+            if use_gtk_theme:
+                kernel_label.set_markup(f' {kernel}')
+            else:
+                kernel_label.set_markup(f'<span color="{self.config["colors"]["text_header_kernel"]}"> {kernel}</span>')
+            kernel_label.override_font(header_font_description)
+            kernel_label.set_halign(Gtk.Align.START)
+            kernel_label.set_ellipsize(3)
+            kernel_label.set_max_width_chars(30)
+            system_info_box.pack_start(kernel_label, False, False, 0)
         
-        hostname_label = Gtk.Label()
-        if use_gtk_theme:
-            hostname_label.set_markup(f' {hostname}')
-        else:
-            hostname_label.set_markup(f'<span color="{self.config["colors"]["text_header_hostname"]}"> {hostname}</span>')
-        hostname_label.override_font(header_font_description)
-        hostname_label.set_halign(Gtk.Align.START)
-        hostname_label.set_ellipsize(3)
-        hostname_label.set_max_width_chars(30)
-        system_info_box.pack_start(hostname_label, False, False, 0)
+        # Hostname Label - solo mostrar si no está oculto
+        if not self.config['window'].get('hide_hostname', False):
+            hostname_label = Gtk.Label()
+            if use_gtk_theme:
+                hostname_label.set_markup(f' {hostname}')
+            else:
+                hostname_label.set_markup(f'<span color="{self.config["colors"]["text_header_hostname"]}"> {hostname}</span>')
+            hostname_label.override_font(header_font_description)
+            hostname_label.set_halign(Gtk.Align.START)
+            hostname_label.set_ellipsize(3)
+            hostname_label.set_max_width_chars(30)
+            system_info_box.pack_start(hostname_label, False, False, 0)
         
     # === APLICAR EL LAYOUT SEGÚN CONFIGURACIÓN ===
         header_layout = self.config['window'].get('header_layout', 'left')
