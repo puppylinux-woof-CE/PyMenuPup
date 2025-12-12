@@ -213,8 +213,10 @@ class ConfigManager:
                 "height": 427,
                 "decorated_window": False,
                 "hide_header": True,
+                "hide_profile_pic": False,
+                "search_bar_position": "bottom",
                 "hide_quick_access": True,
-                "hide_social_networks": False,
+                "hide_social_networks": True,
                 "halign": "center",
                 "icon_size": 32,
                 "profile_pic_size": 64,
@@ -222,7 +224,8 @@ class ConfigManager:
                 "hide_category_text": False,
                 "category_icon_size": 16,
                 "header_layout": "left",
-               "hide_os_name": False,
+                "header_text_align": "left",
+                "hide_os_name": False,
                 "hide_kernel": False,
                 "hide_hostname": False
             },
@@ -256,7 +259,7 @@ class ConfigManager:
                 "tint2rc": "/root/.config/tint2/tint2rc"    
             },
             "tray": {
-                "use_tint2": False
+                "use_tint2": True
             },
             "categories": {
                 "excluded": []
@@ -1095,9 +1098,41 @@ class ArcMenuLauncher(Gtk.Window):
         
         # Columna 3: Aplicaciones
         content_box.pack_start(self.create_applications_area(), True, True, 0)
-    
-        main_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
-    
+        
+        # === NUEVA LÓGICA: Verificar posición de la barra de búsqueda ===
+        search_position = self.config['window'].get('search_bar_position', 'bottom')
+        
+        # Crear la barra de búsqueda y botones
+        search_and_buttons_box = self.create_search_and_buttons_box()
+        
+        if search_position == 'top':
+            # Si está arriba, insertarla después del header
+            # Contar cuántos elementos hay antes de content_box
+            main_box_children = main_box.get_children()
+            insert_position = 0
+            
+            # Encontrar la posición correcta (después del header/quick_access/separadores)
+            for i, child in enumerate(main_box_children):
+                if child == content_box:
+                    insert_position = i
+                    break
+            
+            # Insertar separador y barra de búsqueda
+            main_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
+            main_box.reorder_child(main_box.get_children()[-1], insert_position)
+            
+            main_box.pack_start(search_and_buttons_box, False, False, 0)
+            main_box.reorder_child(main_box.get_children()[-1], insert_position + 1)
+        else:
+            # Si está abajo (comportamiento original)
+            main_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
+            main_box.pack_end(search_and_buttons_box, False, False, 0)
+        
+        self.show_all()
+        GLib.timeout_add(100, self.delayed_focus_grab)
+        
+    def create_search_and_buttons_box(self):
+        """Crea la caja con barra de búsqueda y botones de acción"""
         bottom_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         bottom_box.set_margin_top(4)
         bottom_box.set_margin_bottom(4)
@@ -1117,9 +1152,8 @@ class ArcMenuLauncher(Gtk.Window):
         # ---- Botón de apagado ----
         shutdown_button = Gtk.Button()
         shutdown_button.get_style_context().add_class('action-button') 
-        shutdown_button.set_size_request(30, 5)  # NUEVA LÍNEA - tamaño fijo
+        shutdown_button.set_size_request(30, 5)
         icon_path = self.find_icon_path("shutdown48")
-        icon_size = self.config['window'].get('icon_size', 16)  
         if icon_path:
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 20, 20)
             shutdown_icon = Gtk.Image.new_from_pixbuf(pixbuf)
@@ -1130,12 +1164,11 @@ class ArcMenuLauncher(Gtk.Window):
         shutdown_button.connect("clicked", self.on_shutdown_clicked)
         bottom_box.pack_end(shutdown_button, False, False, 0)
         
-        # ---- Nuevo botón de navegador ----
+        # ---- Botón de navegador ----
         browser_button = Gtk.Button()
         browser_button.get_style_context().add_class('action-button') 
-        browser_button.set_size_request(30, 5)  # NUEVA LÍNEA - tamaño fijo
+        browser_button.set_size_request(30, 5)
         icon_path = self.find_icon_path("www48")
-        icon_size = self.config['window'].get('icon_size', 16)        
         if icon_path:
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 20, 20)
             browser_icon = Gtk.Image.new_from_pixbuf(pixbuf)
@@ -1149,10 +1182,8 @@ class ArcMenuLauncher(Gtk.Window):
         # ---- Botón de configuración ----
         config_button = Gtk.Button()
         config_button.get_style_context().add_class('action-button')
-        browser_button.get_style_context().add_class('action-button') 
-        config_button.set_size_request(30, 5)  # NUEVA LÍNEA - tamaño fijo
+        config_button.set_size_request(30, 5)
         icon_path = self.find_icon_path("configuration48")
-        icon_size = self.config['window'].get('icon_size', 16)       
         if icon_path:
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 20, 20)
             config_icon = Gtk.Image.new_from_pixbuf(pixbuf)
@@ -1163,12 +1194,8 @@ class ArcMenuLauncher(Gtk.Window):
         config_button.set_tooltip_text(TR['Pymenu config'])
         config_button.connect("clicked", self.on_config_clicked)
         bottom_box.pack_end(config_button, False, False, 0)
-
         
-        main_box.pack_end(bottom_box, False, False, 0)
-        
-        self.show_all()
-        GLib.timeout_add(100, self.delayed_focus_grab)
+        return bottom_box        
         
     def delayed_focus_grab(self):
         """Grab focus on search entry after a small delay to preserve placeholder visibility"""
@@ -1184,6 +1211,7 @@ class ArcMenuLauncher(Gtk.Window):
         header_box.set_margin_bottom(1)
         header_box.set_margin_start(5)
         header_box.set_margin_end(5)
+        hide_profile = self.config['window'].get('hide_profile_pic', False)
     
         # === CREAR EL PERFIL ===
         profile_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -1251,6 +1279,16 @@ class ArcMenuLauncher(Gtk.Window):
         header_font_description = Pango.FontDescription.from_string(header_font_string)
         
         use_gtk_theme = self.config['colors'].get('use_gtk_theme', False)
+            # ← NUEVA LÍNEA: Obtener alineación del texto
+        text_align = self.config['window'].get('header_text_align', 'left')
+        
+                # Convertir a constante de GTK
+        if text_align == 'center':
+            gtk_align = Gtk.Align.CENTER
+        elif text_align == 'right':
+            gtk_align = Gtk.Align.END
+        else:  # left
+            gtk_align = Gtk.Align.START
         
         # OS Label - solo mostrar si no está oculto
         if not self.config['window'].get('hide_os_name', False):
@@ -1260,7 +1298,7 @@ class ArcMenuLauncher(Gtk.Window):
             else:
                 os_label.set_markup(f'<span color="{self.config["colors"]["text_header_os"]}"><b>{os_name}</b></span>')
             os_label.override_font(header_font_description)
-            os_label.set_halign(Gtk.Align.START)
+            os_label.set_halign(gtk_align)  # ← APLICAR ALINEACIÓN
             os_label.set_ellipsize(3)
             os_label.set_max_width_chars(30)
             system_info_box.pack_start(os_label, False, False, 0)
@@ -1273,7 +1311,7 @@ class ArcMenuLauncher(Gtk.Window):
             else:
                 kernel_label.set_markup(f'<span color="{self.config["colors"]["text_header_kernel"]}"> {kernel}</span>')
             kernel_label.override_font(header_font_description)
-            kernel_label.set_halign(Gtk.Align.START)
+            kernel_label.set_halign(gtk_align)  # ← APLICAR ALINEACIÓN
             kernel_label.set_ellipsize(3)
             kernel_label.set_max_width_chars(30)
             system_info_box.pack_start(kernel_label, False, False, 0)
@@ -1286,7 +1324,7 @@ class ArcMenuLauncher(Gtk.Window):
             else:
                 hostname_label.set_markup(f'<span color="{self.config["colors"]["text_header_hostname"]}"> {hostname}</span>')
             hostname_label.override_font(header_font_description)
-            hostname_label.set_halign(Gtk.Align.START)
+            hostname_label.set_halign(gtk_align)  # ← APLICAR ALINEACIÓN
             hostname_label.set_ellipsize(3)
             hostname_label.set_max_width_chars(30)
             system_info_box.pack_start(hostname_label, False, False, 0)
@@ -1294,13 +1332,15 @@ class ArcMenuLauncher(Gtk.Window):
     # === APLICAR EL LAYOUT SEGÚN CONFIGURACIÓN ===
         header_layout = self.config['window'].get('header_layout', 'left')
         
-        if header_layout == 'right':
+        if hide_profile:
+            # Si el perfil está oculto, solo mostrar info del sistema
+            header_box.pack_start(system_info_box, True, True, 0)
+        elif header_layout == 'right':
             # Avatar a la derecha, info a la izquierda
             header_box.pack_start(system_info_box, True, True, 0)
             header_box.pack_start(profile_box, False, False, 0)
         elif header_layout == 'center':
             # Avatar centrado con info del sistema a ambos lados
-            # Crear espaciadores para centrar el avatar
             left_spacer = Gtk.Box()
             right_spacer = Gtk.Box()
             
@@ -1308,7 +1348,6 @@ class ArcMenuLauncher(Gtk.Window):
             header_box.pack_start(profile_box, False, False, 0)
             header_box.pack_start(right_spacer, True, True, 0)
             
-            # Agregar la info del sistema al espaciador izquierdo
             system_info_box.set_halign(Gtk.Align.START)
             left_spacer.pack_start(system_info_box, False, False, 0)
         else:
@@ -1316,15 +1355,16 @@ class ArcMenuLauncher(Gtk.Window):
             header_box.pack_start(profile_box, False, False, 0)
             header_box.pack_start(system_info_box, True, True, 0)
         
-        # Monitor de cambios en el archivo de perfil
-        profile_file = Gio.File.new_for_path(self.config['paths']['profile_pic'])
-        monitor = profile_file.monitor_file(Gio.FileMonitorFlags.NONE, None)
-        
-        def on_file_changed(monitor, file, other_file, event_type):
-            if event_type in (Gio.FileMonitorEvent.CHANGED, Gio.FileMonitorEvent.CREATED):
-                GLib.idle_add(load_profile_image)
-        
-        monitor.connect("changed", on_file_changed)
+    # Monitor de cambios en el archivo de perfil (solo si no está oculto)
+        if not hide_profile:
+            profile_file = Gio.File.new_for_path(self.config['paths']['profile_pic'])
+            monitor = profile_file.monitor_file(Gio.FileMonitorFlags.NONE, None)
+            
+            def on_file_changed(monitor, file, other_file, event_type):
+                if event_type in (Gio.FileMonitorEvent.CHANGED, Gio.FileMonitorEvent.CREATED):
+                    GLib.idle_add(load_profile_image)
+            
+            monitor.connect("changed", on_file_changed)
         
         return header_box
             

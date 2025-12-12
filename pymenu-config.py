@@ -33,10 +33,14 @@ LANG = {
         'Show window frame:': 'Show window frame:',
         '(No transparency)': '(No transparency)',
         'Hide header:': 'Hide header:',
+        'Hide profile picture:': 'Hide profile picture:',
         'Hide quick access:': 'Hide quick access:',
         'Hide social networks:': 'Hide social networks:',
         'Hide categories text:': 'Hide categories text:',
         'Horizontal alignment:': 'Horizontal alignment:',
+        'Search bar position:': 'Search bar position:',
+        'top': 'Top',
+        'bottom': 'Bottom',
         'center': 'center',
         'left': 'left',
         'right': 'right',
@@ -65,6 +69,7 @@ LANG = {
         'Excluded categories:': 'Excluded categories:',
         'Select categories to hide from menu': 'Select categories to hide from menu',
         'Header layout:': 'Header layout:',
+        'Header text alignment:': 'Header text alignment:',
         'Avatar left': 'Avatar left',
         'Avatar right': 'Avatar right',
         'Avatar center': 'Avatar center',
@@ -96,10 +101,14 @@ LANG = {
         'Show window frame:': 'Mostrar marco de ventana:',
         '(No transparency)': '(Sin opacidad)',
         'Hide header:': 'Ocultar encabezado:',
+        'Hide profile picture:': 'Ocultar foto de perfil:',
         'Hide quick access:': 'Ocultar accesos rápidos:',
         'Hide social networks:': 'Ocultar redes sociales:',
         'Hide categories text:': 'Ocultar texto de categorías:',
         'Horizontal alignment:': 'Alineación horizontal:',
+        'Search bar position:': 'Posición de barra de búsqueda:',
+        'top': 'Arriba',                                           
+        'bottom': 'Abajo', 
         'center': 'centro',
         'left': 'izquierda',
         'right': 'derecha',
@@ -129,6 +138,7 @@ LANG = {
         'Use system theme:': 'Usar tema del sistema:',
         'Select categories to hide from menu': 'Selecciona categorías para ocultar del menú',
         'Header layout:': 'Diseño del encabezado:',
+        'Header text alignment:': 'Alineación del texto del encabezado:',
         'Avatar left': 'Avatar izquierda',
         'Avatar right': 'Avatar derecha',
         'Avatar center': 'Avatar centrado',
@@ -184,6 +194,8 @@ class ConfigManager:
                 "height": 850,
                 "decorated_window": False,
                 "hide_header": False, 
+                "hide_profile_pic": False,
+                "search_bar_position": "bottom",
                 "hide_quick_access": False,
                 "hide_social_networks": False,
                 "hide_category_text": False,
@@ -193,6 +205,7 @@ class ConfigManager:
                 "profile_pic_size": 128,
                 "profile_pic_shape": "square", 
                 "header_layout": "left",  
+                "header_text_align": "left",
                 "hide_os_name": False,
                 "hide_kernel": False,
                 "hide_hostname": False 
@@ -354,8 +367,14 @@ class ConfigWindow(Gtk.Window):
         hide_header_check.connect("toggled", self.on_check_toggled, "window", "hide_header")
         grid.attach(hide_header_check, 1, 3, 1, 1)
         
+        grid.attach(Gtk.Label(label=TR['Hide profile picture:']), 0, 4, 1, 1)
+        hide_profile_check = Gtk.CheckButton()
+        hide_profile_check.set_active(self.config['window'].get('hide_profile_pic', False))
+        hide_profile_check.connect("toggled", self.on_check_toggled, "window", "hide_profile_pic")
+        grid.attach(hide_profile_check, 1, 4, 1, 1)
+        
         # Header layout
-        grid.attach(Gtk.Label(label=TR['Header layout:']), 0, 4, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Header layout:']), 0, 5, 1, 1)
         header_layout_combo = Gtk.ComboBoxText()
         header_layout_combo.append("left", TR['Avatar left'])
         header_layout_combo.append("center", TR['Avatar center']) 
@@ -363,86 +382,88 @@ class ConfigWindow(Gtk.Window):
         current_layout = self.config['window'].get('header_layout', 'left')
         header_layout_combo.set_active_id(current_layout)
         header_layout_combo.connect("changed", self.on_combobox_changed, 'window', 'header_layout')
-        grid.attach(header_layout_combo, 1, 4, 1, 1)
+        grid.attach(header_layout_combo, 1, 5, 1, 1)
+        
+        # Header text alignment
+        grid.attach(Gtk.Label(label=TR['Header text alignment:']), 0, 6, 1, 1)
+        header_text_align_combo = Gtk.ComboBoxText()
+        header_text_align_combo.append("left", TR['left'])
+        header_text_align_combo.append("center", TR['center'])
+        header_text_align_combo.append("right", TR['right'])
+        current_text_align = self.config['window'].get('header_text_align', 'left')
+        header_text_align_combo.set_active_id(current_text_align)
+        header_text_align_combo.connect("changed", self.on_combobox_changed, 'window', 'header_text_align')
+        grid.attach(header_text_align_combo, 1, 6, 1, 1)
         
                 # Hide OS name
-        grid.attach(Gtk.Label(label=TR['Hide OS name:']), 0, 5, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Hide OS name:']), 0, 7, 1, 1)
         hide_os_check = Gtk.CheckButton()
         hide_os_check.set_active(self.config['window'].get('hide_os_name', False))
         hide_os_check.connect("toggled", self.on_check_toggled, "window", "hide_os_name")
-        grid.attach(hide_os_check, 1, 5, 1, 1)
+        grid.attach(hide_os_check, 1, 7, 1, 1)
         
         # Hide kernel
-        grid.attach(Gtk.Label(label=TR['Hide kernel:']), 0, 6, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Hide kernel:']), 0, 8, 1, 1)
         hide_kernel_check = Gtk.CheckButton()
         hide_kernel_check.set_active(self.config['window'].get('hide_kernel', False))
         hide_kernel_check.connect("toggled", self.on_check_toggled, "window", "hide_kernel")
-        grid.attach(hide_kernel_check, 1, 6, 1, 1)
+        grid.attach(hide_kernel_check, 1, 8, 1, 1)
         
         # Hide hostname
-        grid.attach(Gtk.Label(label=TR['Hide hostname:']), 0, 7, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Hide hostname:']), 0, 9, 1, 1)
         hide_hostname_check = Gtk.CheckButton()
         hide_hostname_check.set_active(self.config['window'].get('hide_hostname', False))
         hide_hostname_check.connect("toggled", self.on_check_toggled, "window", "hide_hostname")
-        grid.attach(hide_hostname_check, 1, 7, 1, 1)
+        grid.attach(hide_hostname_check, 1, 9, 1, 1)
         
-        grid.attach(Gtk.Label(label=TR['Hide categories text:']), 0, 8, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Hide categories text:']), 0, 10, 1, 1)
         hide_cat_text_check = Gtk.CheckButton()
         hide_cat_text_check.set_active(self.config['window'].get('hide_category_text', False))
         hide_cat_text_check.connect("toggled", self.on_checkbox_toggled, 'window', 'hide_category_text')
-        grid.attach(hide_cat_text_check, 1, 8, 1, 1)
+        grid.attach(hide_cat_text_check, 1, 10, 1, 1)
         
-        grid.attach(Gtk.Label(label=TR['Hide quick access:']), 0, 9, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Hide quick access:']), 0, 11, 1, 1)
         hide_quick_check = Gtk.CheckButton()
         hide_quick_check.set_active(self.config['window'].get('hide_quick_access', False))
         hide_quick_check.connect("toggled", self.on_check_toggled, "window", "hide_quick_access")
-        grid.attach(hide_quick_check, 1, 9, 1, 1)
+        grid.attach(hide_quick_check, 1, 11, 1, 1)
         
-        grid.attach(Gtk.Label(label=TR['Hide social networks:']), 0, 10, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Hide social networks:']), 0, 12, 1, 1)
         hide_social_check = Gtk.CheckButton()
         hide_social_check.set_active(self.config['window'].get('hide_social_networks', False))
         hide_social_check.connect("toggled", self.on_check_toggled, "window", "hide_social_networks")
-        grid.attach(hide_social_check, 1, 10, 1, 1)        
+        grid.attach(hide_social_check, 1, 12, 1, 1)        
 
         # Los demás widgets ahora tienen posiciones actualizadas
-        grid.attach(Gtk.Label(label=TR['Icon size:']), 0, 11, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Icon size:']), 0, 13, 1, 1)
         icon_size_spin = Gtk.SpinButton.new_with_range(16, 64, 8)
         icon_size_spin.set_value(self.config['window'].get('icon_size', 32))
         icon_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "icon_size")
-        grid.attach(icon_size_spin, 1, 11, 1, 1)
+        grid.attach(icon_size_spin, 1, 13, 1, 1)
 
-        grid.attach(Gtk.Label(label=TR['Category icon size:']), 0, 12, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Category icon size:']), 0, 14, 1, 1)
         category_icon_size_spin = Gtk.SpinButton.new_with_range(16, 64, 8)
         category_icon_size_spin.set_value(self.config['window'].get('category_icon_size', 24))
         category_icon_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "category_icon_size")
-        grid.attach(category_icon_size_spin, 1, 12, 1, 1)
+        grid.attach(category_icon_size_spin, 1, 14, 1, 1)
 
-        grid.attach(Gtk.Label(label=TR['Profile pic size:']), 0, 13, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Profile pic size:']), 0, 15, 1, 1)
         profile_pic_size_spin = Gtk.SpinButton.new_with_range(64, 256, 8)
         profile_pic_size_spin.set_value(self.config['window'].get('profile_pic_size', 128))
         profile_pic_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "profile_pic_size")
-        grid.attach(profile_pic_size_spin, 1, 13, 1, 1)
-
-        # ------------------- INICIO DE LA NUEVA OPCIÓN (FILA 14) -------------------
-        grid.attach(Gtk.Label(label=TR['Profile pic shape:']), 0, 14, 1, 1)
+        grid.attach(profile_pic_size_spin, 1, 15, 1, 1)
         
-        # ComboBox para la forma (Cuadrada/Circular)
+        
+        grid.attach(Gtk.Label(label=TR['Profile pic shape:']), 0, 16, 1, 1)    
         combobox = Gtk.ComboBoxText()
-        # 'square' y 'circular' son los IDs internos que se guardarán en el JSON
         combobox.append("square", TR.get('square', 'Cuadrada'))
-        combobox.append("circular", TR.get('circular', 'Circular'))
-        
+        combobox.append("circular", TR.get('circular', 'Circular'))       
         current_shape = self.config['window'].get('profile_pic_shape', 'square')
         combobox.set_active_id(current_shape)
-
-        # Conectar al método genérico de cambio (que debe existir en tu clase ConfigWindow)
         combobox.connect("changed", self.on_combobox_changed, 'window', 'profile_pic_shape')
-        grid.attach(combobox, 1, 14, 1, 1)
-        # ------------------- FIN DE LA NUEVA OPCIÓN (FILA 14) -------------------
+        grid.attach(combobox, 1, 16, 1, 1)
 
-
-        # El siguiente widget, alineación horizontal, se mueve a la FILA 15
-        grid.attach(Gtk.Label(label=TR['Horizontal alignment:']), 0, 15, 1, 1) # <--- FILA 15
+        grid.attach(Gtk.Label(label=TR['Horizontal alignment:']), 0, 17, 1, 1) 
         halign_combo = Gtk.ComboBoxText()
         halign_options = ["center", "left", "right"]
         for option in halign_options:
@@ -454,7 +475,16 @@ class ConfigWindow(Gtk.Window):
         except ValueError:
             halign_combo.set_active(0)
         halign_combo.connect("changed", self.on_combo_changed, "window", "halign")
-        grid.attach(halign_combo, 1, 15, 1, 1) # <--- FILA 15
+        grid.attach(halign_combo, 1, 17, 1, 1) 
+        
+        grid.attach(Gtk.Label(label=TR['Search bar position:']), 0, 18, 1, 1)
+        searchbar_combo = Gtk.ComboBoxText()
+        searchbar_combo.append("top", TR['top'])
+        searchbar_combo.append("bottom", TR['bottom'])
+        current_searchbar = self.config['window'].get('search_bar_position', 'bottom')
+        searchbar_combo.set_active_id(current_searchbar)
+        searchbar_combo.connect("changed", self.on_combobox_changed, 'window', 'search_bar_position')
+        grid.attach(searchbar_combo, 1, 18, 1, 1)
 
         # [CORRECCIÓN] Envolver el grid en un ScrolledWindow
         scrolled_window = Gtk.ScrolledWindow()
