@@ -1805,30 +1805,32 @@ class ArcMenuLauncher(Gtk.Window):
         icon = self.load_app_icon(app_info.get('Icon', 'application-x-executable'))
         box.pack_start(icon, False, False, 0)
         
-        # Nombre de la aplicación
-        name_label = Gtk.Label(label=app_info['Name'])
-        
-        # Estilo de fuente
-        font_description = Pango.FontDescription.from_string(self.config['font']['family'])
-        font_description.set_size(self.config['font']['size_names'])
-        name_label.override_font(font_description)
-        
-        # Solución definitiva para el salto de línea
-        name_label.set_line_wrap(True)
-        name_label.set_max_width_chars(10)  # Fija el ancho máximo en caracteres
-        name_label.set_lines(2)
-        name_label.set_ellipsize(Pango.EllipsizeMode.END)
-        name_label.set_justify(Gtk.Justification.CENTER)
-        name_label.set_halign(Gtk.Align.CENTER)
-        
-        box.pack_start(name_label, False, False, 0)
+        # Verificar si se debe ocultar el nombre de la app
+        if not self.config['window'].get('hide_app_names', False):
+            # Nombre de la aplicación
+            name_label = Gtk.Label(label=app_info['Name'])
+            
+            # Estilo de fuente
+            font_description = Pango.FontDescription.from_string(self.config['font']['family'])
+            font_description.set_size(self.config['font']['size_names'])
+            name_label.override_font(font_description)
+            
+            # Solución definitiva para el salto de línea
+            name_label.set_line_wrap(True)
+            name_label.set_max_width_chars(10)  # Fija el ancho máximo en caracteres
+            name_label.set_lines(2)
+            name_label.set_ellipsize(Pango.EllipsizeMode.END)
+            name_label.set_justify(Gtk.Justification.CENTER)
+            name_label.set_halign(Gtk.Align.CENTER)
+            
+            box.pack_start(name_label, False, False, 0)
         
         button.add(box)
         button.set_tooltip_text(app_info.get('Comment', app_info['Name']))
         
         # Añade la información de la aplicación al botón para un acceso más fácil
         button.app_info = app_info
-         # Habilitar eventos de mouse
+        # Habilitar eventos de mouse
         button.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         
         def on_right_click(widget, event):
@@ -1865,7 +1867,6 @@ class ArcMenuLauncher(Gtk.Window):
             return False
         
         button.connect("button-press-event", on_right_click)       
-        
         
         return button
 
