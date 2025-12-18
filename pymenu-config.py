@@ -91,7 +91,10 @@ class ConfigManager:
                 "profile_manager": "/usr/local/bin/ProfileManager.py",
                 "shutdown_cmd": "/usr/local/bin/apagado-avatar.py",
                 "jwmrc_tray": "/root/.jwmrc-tray",          
-                "tint2rc": "/root/.config/tint2/tint2rc"    
+                "tint2rc": "/root/.config/tint2/tint2rc"   
+             },
+            "search_engine": {
+                "engine": "google"        
             },
             "tray": {
                 "use_tint2": False
@@ -528,6 +531,24 @@ class ConfigWindow(Gtk.Window):
         self.entry_tint2rc.connect("changed", self.on_path_changed, "paths", "tint2rc")
         grid.attach(self.entry_tint2rc, 1, 6, 16, 1)
         
+        separator2 = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        
+        grid.attach(separator2, 0, 7, 17, 1)
+        
+        # Selector de motor de búsqueda
+        grid.attach(Gtk.Label(label=TR['Search engine:']), 0, 8, 1, 1)
+        search_engine_combo = Gtk.ComboBoxText()
+        search_engine_combo.append("google", "Google")
+        search_engine_combo.append("duckduckgo", "DuckDuckGo")
+        search_engine_combo.append("brave", "Brave Search")
+        search_engine_combo.append("searxng", "SearXNG")
+        search_engine_combo.append("librex", "LibreX")
+        
+        current_engine = self.config.get('search_engine', {}).get('engine', 'google')
+        search_engine_combo.set_active_id(current_engine)
+        search_engine_combo.connect("changed", self.on_search_engine_changed)
+        grid.attach(search_engine_combo, 1, 8, 16, 1)
+        
         # Actualizar el estado de los widgets según el checkbox
         self.update_tray_widgets_sensitivity()
         
@@ -553,7 +574,14 @@ class ConfigWindow(Gtk.Window):
         self.jwm_label.set_sensitive(not use_tint2)
         self.entry_jwmrc_tray.set_sensitive(not use_tint2)
         self.tint2_label.set_sensitive(use_tint2)
-        self.entry_tint2rc.set_sensitive(use_tint2)        
+        self.entry_tint2rc.set_sensitive(use_tint2)  
+        
+    def on_search_engine_changed(self, combobox):
+        """Manejar el cambio de motor de búsqueda"""
+        if 'search_engine' not in self.config:
+            self.config['search_engine'] = {}
+        self.config['search_engine']['engine'] = combobox.get_active_id()
+        self.config_manager.save_config(self.config)              
         
     def create_categories_tab(self):
         """Crear tab para excluir categorías"""

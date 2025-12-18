@@ -14,168 +14,58 @@ import cairo
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-# === 🌍 Diccionario de Traducción ===
-LANG = {
-    'en': {
-        'Search applications...': 'Search applications...',
-        'Shutdown': 'Shutdown',
-        'Search in the web': 'Search in the web',
-        'Pymenu config': 'Pymenu config',
-        'Select avatar': 'Select avatar',
-        'Terminal': 'Terminal',
-        'Terminal emulator': 'Terminal emulator',
-        'File Manager': 'File Manager',
-        'File manager': 'File manager',
-        'Firefox': 'Firefox',
-        'Web browser': 'Web browser',
-        # Categorías
-        'Desktop': 'Desktop',
-        'System': 'System',
-        'Setup': 'Setup',
-        'Utility': 'Utility',
-        'Filesystem': 'Filesystem',
-        'Graphic': 'Graphic',
-        'Document': 'Document',
-        'Business': 'Business',
-        'Personal': 'Personal',
-        'Network': 'Network',
-        'Internet': 'Internet',
-        'Multimedia': 'Multimedia',
-        'Fun': 'Fun',
-        'Help': 'Help',
-         'Rectify': 'Rectify',
-         'Shutdown': 'Shutdown',
-        'Leave': 'Leave',
-         'Run': 'Run',
-        'Create desktop shortcut': 'Create desktop shortcut',
-        'Favorites': 'Favorites'
-    },
-    'es': {
-        'Search applications...': 'Buscar aplicaciones...',
-        'Shutdown': 'Apagar',
-        'Search in the web': 'Buscar en la web',
-        'Pymenu config': 'Configurar Pymenu',
-        'Select avatar': 'Seleccione avatar',
-        'Terminal': 'Terminal',
-        'Terminal emulator': 'Emulador de terminal',
-        'File Manager': 'Gestor de Archivos',
-        'File manager': 'Gestor de archivos',
-        'Firefox': 'Firefox',
-        'Web browser': 'Navegador web',
-        # Categorías
-        'Desktop': 'Escritorio',
-        'System': 'Sistema',
-        'Setup': 'Configuración',
-        'Utility': 'Utilidades',
-        'Utility': 'Herramientas',
-        'Filesystem': 'Archivos',
-        'Graphic': 'Gráficos',
-        'Document': 'Documentos',
-        'Business': 'Oficina',
-        'Personal': 'Personal',
-        'Network': 'Red',
-        'Internet': 'Internet',
-        'Multimedia': 'Multimedia',
-        'Fun': 'Juegos',
-        'Rectify': 'Rectificar',
-        'Help': 'Ayuda',
-        'Shutdown': 'Apagar',
-        'Run': 'Ejecutar', 
-        'Create desktop shortcut': 'Crear acceso en escritorio',
-        'Leave': 'Salir',
-        'Favorites': 'Favoritos'
-    }
-}
+# === 🌍 Sistema de Traducción para Essora Linux ===
+try:
+    sys.path.insert(0, '/usr/local/bin')
+    from pymenuessoralang import TranslationManager
+    TR = TranslationManager()
+    # Este mapa resuelve automáticamente el problema de JWM traducido
+    CATEGORY_MAP = TR.get_category_map()
+except Exception as e:
+    class DummyTR:
+        def get(self, k, d=None): return d or k
+        def __getitem__(self, k): return k
+    TR = DummyTR()
+    CATEGORY_MAP = {}
 
-# Mapeo de categorías traducidas a nombres estándar
-CATEGORY_MAP = {
-    # Español a Inglés
-    'Escritorio': 'Desktop',
-    'Sistema': 'System', 
-    'Configuración': 'Setup',
-    'Utilidades': 'Utility',
-    'Herramientas': 'Utility',
-    'Archivos': 'Filesystem',
-    'Sistema de Archivos': 'Filesystem',
-    'Gráficos': 'Graphic',
-    'Documentos': 'Document',
-    'Oficina': 'Business',
-    'Personal': 'Personal',
-    'Red': 'Network',
-    'Redes': 'Network',
-    'Internet': 'Internet',
-    'Multimedia': 'Multimedia',
-    'Juegos': 'Fun',
-    'Ayuda': 'Help',
-    'Salir': 'Leave',
-     'Rectificar': 'Rectify',
-     'Apagar': 'Shutdown',
-    # Mantener nombres en inglés también
-    'Desktop': 'Desktop',
-    'System': 'System',
-    'Setup': 'Setup',
-    'Utility': 'Utility',
-    'Filesystem': 'Filesystem',
-    'Graphic': 'Graphic',
-    'Document': 'Document',
-    'Business': 'Business',
-    'Personal': 'Personal',
-    'Network': 'Network',
-    'Internet': 'Internet',
-    'Multimedia': 'Multimedia',
-    'Fun': 'Fun',
-    'Help': 'Help',
-     'Rectify': 'Rectify',
-     'Shutdown': 'Shutdown',
-    'Leave': 'Leave'
-}
-
-# === 🌐 Detectar idioma del sistema ===
-def get_translation_texts():
-    try:
-        sys_locale = locale.getlocale()
-        lang_code = sys_locale[0].split('_')[0] if sys_locale[0] else 'en'
-        return LANG.get(lang_code, LANG['en'])
-    except Exception:
-        return LANG['en']
-
-TR = get_translation_texts()
-
-# Import the pango module using GObject Introspection
-gi.require_version('Pango', '1.0')
-from gi.repository import Pango
-
-# --- Privilege handling ---
+# --- 🛠️ Gestión de Privilegios (Essora) ---
 sudo_targets = {
     "/usr/local/essora-kit/pymenu-config.py",
     "/usr/local/essora-kit/ProfileManager.py",
     "logout_gui",
 }
+
 def _wrap_for_user(cmd_parts):
-    """Ensure commands run as the invoking user (audio, browser) unless in sudo_targets."""
-    import os, shlex, subprocess
-    if not cmd_parts:
-        return cmd_parts
+    if not cmd_parts: return cmd_parts
     exe = cmd_parts[0]
-    
     if exe in sudo_targets:
         return ["sudo"] + cmd_parts
-    
     if os.geteuid() == 0 and os.environ.get("SUDO_USER"):
         return ["sudo", "-E", "-u", os.environ["SUDO_USER"]] + cmd_parts
     return cmd_parts
 
-
-
+# --- 📁 Rutas y Configuración de Essora ---
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
-
 
 HOME_DIR = os.path.expanduser("~")
 PROFILE_PIC = "/usr/local/essora-kit/face"
 PROFILE_MANAGER = "/usr/local/essora-kit/ProfileManager.py"
 SHUTDOWN_CMD = "/usr/local/bin/logout_gui"
-CONFIG_FILE = "/usr/local/essora-kit/pymenu.json"
+
+CONFIG_PATHS = [
+    os.path.expanduser("~/.config/essora-kit/pymenu.json"),
+    os.path.expanduser("~/.config/pymenu.json"),
+    "/root/.config/pymenu.json",
+    "/usr/local/essora-kit/pymenu.json"
+]
+
+def get_config_path():
+    for path in CONFIG_PATHS:
+        if os.path.exists(path): return path
+    return CONFIG_PATHS[0]
+
+CONFIG_FILE = get_config_path()
 
 class ConfigManager:
     """Manages reading and writing the application's JSON configuration."""
@@ -461,16 +351,19 @@ class JWMMenuParser:
             self.icon_paths = self.extract_icon_paths(root)
             
             applications = {}
+            
             for menu in root.findall('.//Menu'):
                 label = menu.get('label', 'Unknown')
-                if label:
-                    # NUEVA LÍNEA: Normalizar nombre de categoría
-                    normalized_label = CATEGORY_MAP.get(label, label)
-                    apps = self.extract_programs_from_menu(menu)
-                    if apps:
-                        if normalized_label not in applications:
-                            applications[normalized_label] = []
-                        applications[normalized_label].extend(apps)
+            
+                # 🔒 Normalizar categoría (anti-conflicto con JWM traducido)
+                normalized_label = CATEGORY_MAP.get(label, label)
+            
+                apps = self.extract_programs_from_menu(menu)
+                if apps:
+                    if normalized_label not in applications:
+                        applications[normalized_label] = []
+                    applications[normalized_label].extend(apps)
+
             
             root_programs = []
             # Buscar elementos Program directos bajo root

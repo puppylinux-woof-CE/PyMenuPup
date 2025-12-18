@@ -9,173 +9,37 @@ import locale
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-# === 🌍 Diccionario de Traducción ===
-LANG = {
-    'en': {
-        'PyMenu Configurator': 'PyMenu Configurator',
-        'Window': 'Window',
-        'Colors': 'Colors',
-        'Font': 'Font',
-        'Paths': 'Paths',
-        'Save': 'Save',
-        'Exit': 'Exit',
-        'Config file not found. Creating default config.': 'Config file not found. Creating default config.',
-        'Error loading config file:': 'Error loading config file:',
-        'Using default config.': 'Using default config.',
-        'Window width:': 'Window width:',
-        'Window height:': 'Window height:',
-        'Icon size:': 'Icon size:',
-        'Category icon size:': 'Category icon size:',
-        'Profile pic size:': 'Profile pic size:',
-        'Show window frame:': 'Show window frame:',
-        '(No transparency)': '(No transparency)',
-        'Hide header:': 'Hide header:',
-        'Hide profile pic:': 'Hide profile pic:',
-        'Hide categories text:': 'Hide categories text:',
-        'Horizontal alignment:': 'Horizontal alignment:',
-        'Search bar position:': 'Search bar position:',
-        'center': 'center',
-        'left': 'left',
-        'right': 'right',
-        'top': 'top',    
-        'bottom': 'bottom',
-        'Hide OS name:': 'Hide OS name:',
-        'Hide kernel:': 'Hide kernel:',
-        'Hide hostname:': 'Hide hostname:',
-        'Background color:': 'Background color:',
-        'Border color:': 'Border color:',
-        'Text normal:': 'Normal text:',
-        'Header (OS):': 'Header (OS):',
-        'Header (Kernel):': 'Header (Kernel):',
-        'Header (Hostname):': 'Header (Hostname):',
-        'Hover background:': 'Hover background:',
-        'Button background:': 'Button background:',
-        'Button text:': 'Button text:',
-        'Font family:': 'Font family:',
-        'Category font:': 'Category font:',
-        'Category size:': 'Category size:',
-        'App name size:': 'App name size:',
-        'Header size:': 'Header size:',
-        'Profile pic path:': 'Profile pic path:',
-        'Profile manager:': 'Profile manager:',
-        'Shutdown command:': 'Shutdown command:',
-        'JWM Tray config:': 'JWM Tray config:',               
-        'Tint2 config:': 'Tint2 config:',                     
-        'Use Tint2 (instead of JWM):': 'Use Tint2 (instead of JWM):',
-        'Config saved (without closing).': 'Config saved (without closing).',
-        'An error occurred:': 'An error occurred:',
-        'Categories': 'Categories',
-        'Excluded categories:': 'Excluded categories:',
-        'Select categories to hide from menu': 'Select categories to hide from menu',
-        'Use system theme:': 'Use system theme:',
-        'Profile pic shape:': 'Profile pic shape:',
-        'square': 'Square',
-        'circular': 'Circular',
-        'Header layout:': 'Header layout:',
-        'Header text alignment:': 'Header text alignment:',
-        'Avatar left': 'Avatar left',
-        'Avatar right': 'Avatar right',
-        'Avatar center': 'Avatar center',
-        'Categories background:': 'Categories background:'
-    },
-    'es': {
-        'PyMenu Configurator': 'Configurador de PyMenu',
-        'Window': 'Ventana',
-        'Colors': 'Colores',
-        'Font': 'Fuente',
-        'Paths': 'Rutas',
-        'Save': 'Guardar',
-        'Exit': 'Salir',
-        'Config file not found. Creating default config.': 'Archivo de configuración no encontrado. Creando configuración predeterminada.',
-        'Error loading config file:': 'Error al cargar el archivo de configuración:',
-        'Using default config.': 'Usando la configuración predeterminada.',
-        'Window width:': 'Ancho de ventanta:',
-        'Window height:': 'Alto de ventanta:',
-        'Icon size:': 'Tamaño de los iconos:',
-        'Category icon size:': 'Tamaño de iconos de categorías:',
-        'Profile pic size:': 'Tamaño de foto de perfil:',
-        'Show window frame:': 'Mostrar marco de ventana:',
-        '(No transparency)': '(Sin opacidad)',
-        'Hide header:': 'Ocultar encabezado:',
-        'Hide profile pic:': 'Ocultar foto de perfil:',
-        'Hide categories text:': 'Ocultar texto de categorías:',
-        'Horizontal alignment:': 'Alineación horizontal:',
-        'Search bar position:': 'Posición de barra de búsqueda:',
-        'center': 'centro',
-        'left': 'izquierda',
-        'right': 'derecha',
-        'top': 'arriba',    
-        'bottom': 'abajo',
-        'Hide OS name:': 'Ocultar nombre del OS:',
-        'Hide kernel:': 'Ocultar kernel:',
-        'Hide hostname:': 'Ocultar hostname:',
-        'Background color:': 'Fondo:',
-        'Border color:': 'Borde:',
-        'Text normal:': 'Texto categoria:',
-        'Header (OS):': 'Encabezado (OS):',
-        'Header (Kernel):': 'Encabezado (Kernel):',
-        'Header (Hostname):': 'Encabezado (Hostname):',
-        'Hover background:': 'Fondo al pasar el ratón:',
-        'Button background:': 'Fondo botón:',
-        'Button text:': 'Texto botón:',
-        'Font family:': 'Familia de la fuente:',
-        'Category font:': 'Fuente de categorías:',
-        'Category size:': 'Tamaño de categorías:',
-        'App name size:': 'Tamaño de nombres de apps:',
-        'Header size:': 'Tamaño de encabezado:',
-        'Profile pic path:': 'Foto de perfil:',
-        'Profile manager:': 'Gestor de perfil:',
-        'Shutdown command:': 'Comando de apagado:',
-        'JWM Tray config:': 'Configuración JWM Tray:',        
-        'Tint2 config:': 'Configuración Tint2:',              
-        'Use Tint2 (instead of JWM):': 'Usar Tint2 (en lugar de JWM):',
-        'Config saved (without closing).': 'Configuración guardada (sin cerrar).',
-        'An error occurred:': 'Ocurrió un error:',
-        'Categories': 'Categorías',
-        'Excluded categories:': 'Categorías excluidas:',
-        'Select categories to hide from menu': 'Selecciona categorías para ocultar del menú',
-        'Use system theme:': 'Usar tema del sistema:',
-        'Categories background:': 'Fondo de categorías:',
-        'Profile pic shape:': 'Forma de foto de perfil:',
-        'square': 'Cuadrada',
-        'circular': 'Circular',
-        'Header layout:': 'Diseño del encabezado:',
-        'Header text alignment:': 'Alineación del texto del encabezado:',
-        'Avatar left': 'Avatar izquierda',
-        'Avatar right': 'Avatar derecha',
-        'Avatar center': 'Avatar centrado',
-                # Nuevas traducciones para las categorías
-        'Desktop': 'Escritorio',
-        'System': 'Sistema',
-        'Setup': 'Configuración',
-        'Utility': 'Utilidad',
-        'Filesystem': 'Sistema de archivos',
-        'Graphic': 'Gráfico',
-        'Document': 'Documentos',
-        'Business': 'Negocios',
-        'Personal': 'Personal',
-        'Network': 'Red',
-        'Internet': 'Internet',
-        'Multimedia': 'Multimedia', # La misma palabra en español
-        'Fun': 'Entretenimiento',
-        'Help': 'Ayuda',
-        'Rectify': 'Rectificar',
-        'Shutdown': 'Apagar',
-        'Leave': 'Salir'
-    }
-}
+# === 🌍 Sistema de Traducción y Configuración (Modificado para Essora) ===
+try:
+    from pymenuessoralang import TranslationManager
+    TR = TranslationManager()
+except ImportError:
+    # Si no encuentra el módulo, usa un fallback básico
+    class DummyTR:
+        def __getitem__(self, key): return key
+        def get(self, key, default=None): return default or key
+        def get_category_map(self): return {}
+    TR = DummyTR()
 
-# === 🌍 Detectar idioma del sistema ===
-def get_translation_texts():
-    try:
-        sys_locale = locale.getlocale()
-        lang_code = sys_locale[0].split('_')[0] if sys_locale[0] else 'en'
-        return LANG.get(lang_code, LANG['en'])
-    except Exception:
-        return LANG['en']
+# Definición de rutas con prioridad para Essora Linux
+CONFIG_PATHS = [
+    os.path.expanduser("~/.config/essora-kit/pymenu.json"),
+    os.path.expanduser("~/.config/pymenu.json"),
+    "/root/.config/pymenu.json",
+    "/usr/local/essora-kit/pymenu.json"
+]
 
-TR = get_translation_texts()
-CONFIG_FILE = "/usr/local/essora-kit/pymenu.json"
+def get_config_path():
+    """Selecciona la ruta de configuración con prioridad para essora-kit"""
+    for path in CONFIG_PATHS:
+        if os.path.exists(path):
+            return path
+    # Si ninguno existe, crea el del usuario por defecto
+    default_path = CONFIG_PATHS[0]
+    os.makedirs(os.path.dirname(default_path), exist_ok=True)
+    return default_path
+
+CONFIG_FILE = get_config_path()
 
 class ConfigManager:
     """Clase para cargar y guardar la configuración."""

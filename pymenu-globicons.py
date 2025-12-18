@@ -137,6 +137,9 @@ class ConfigManager:
                 "jwmrc_tray": "/root/.jwmrc-tray",          
                 "tint2rc": "/root/.config/tint2/tint2rc"    
             },
+            "search_engine": {
+                "engine": "google"
+            },
             "tray": {
                 "use_tint2": True
             },
@@ -2033,18 +2036,30 @@ class ArcMenuLauncher(Gtk.Window):
         if not search_query:
             print("Search box is empty. Doing nothing.")
             return
-
+    
         # Encode the search query to be URL-safe
         encoded_query = urllib.parse.quote_plus(search_query)
-        search_url = f"https://www.google.com/search?q={encoded_query}"
+        
+        # Obtener motor de búsqueda desde la configuración
+        search_engine = self.config.get('search_engine', {}).get('engine', 'google')
+        
+        # Diccionario de URLs de búsqueda
+        search_urls = {
+            'google': f"https://www.google.com/search?q={encoded_query}",
+            'duckduckgo': f"https://duckduckgo.com/?q={encoded_query}",
+            'brave': f"https://search.brave.com/search?q={encoded_query}",
+            'searxng': f"https://searx.be/search?q={encoded_query}",
+            'librex': f"https://librex.terryiscool160.xyz/search.php?q={encoded_query}"
+        }
+        
+        # Obtener URL del motor seleccionado, con Google como fallback
+        search_url = search_urls.get(search_engine, search_urls['google'])
         
         try:
-            print(f"Launching browser search for: '{search_query}'")
-            # Use xdg-open to launch the default browser
+            print(f"Launching browser search for: '{search_query}' using {search_engine}")
             subprocess.Popen(["xdg-open", search_url], 
                              stdout=subprocess.DEVNULL,
                              stderr=subprocess.DEVNULL)
-            # Close the menu after launching the browser
             Gtk.main_quit()
         except FileNotFoundError:
             print("Error: 'xdg-open' not found. Please make sure you have a default browser configured.")
