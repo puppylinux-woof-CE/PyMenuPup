@@ -1,0 +1,139 @@
+# ============================================
+# PyMenuPup - 日本語設定
+# ファイル: ja.lang
+# ============================================
+
+# === メインウィンドウ ===
+PyMenuPup Configurator = PyMenuPup 設定
+Window = ウィンドウ
+Colors = 色
+Font = フォント
+Paths = パス
+Categories = カテゴリ
+Save = 保存
+Exit = 終了
+
+# === システムメッセージ ===
+Config file not found. Creating default config. = 設定ファイルが見つかりません。デフォルト設定を作成します。
+Error loading config file: = 設定ファイルの読み込みエラー:
+Using default config. = デフォルト設定を使用します。
+Config saved (without closing). = 設定を保存しました（終了しません）。
+An error occurred: = エラーが発生しました:
+
+# === メインGUI ===
+Search applications... = アプリを検索...
+Shutdown = シャットダウン
+Search in the web = ウェブで検索
+Pymenu config = Pymenuの設定
+Select avatar = アバターを選択
+Terminal = 端末
+Terminal emulator = ターミナルエミュレータ
+File Manager = ファイルマネージャ
+File manager = ファイルマネージャ
+Firefox = Firefox
+Web browser = ウェブブラウザ
+Run = 実行
+Create desktop shortcut = デスクトップにショートカットを作成
+
+# === ユーザーディレクトリ ===
+DownloadsDir = ダウンロード
+MusicDir = ミュージック
+VideosDir = ビデオ
+PicturesDir = 画像
+DocumentsDir = ドキュメント
+Open directory: = ディレクトリを開く:
+
+# === ソーシャルネットワーク ===
+Social Networks = ソーシャルネットワーク
+Hide social networks: = ソーシャルネットワークを非表示:
+
+# === ウィンドウオプション ===
+Window width: = ウィンドウの幅:
+Window height: = ウィンドウの高さ:
+Icon size: = アイコンのサイズ:
+Category icon size: = カテゴリアイコンのサイズ:
+Profile pic size: = プロフィール画像のサイズ:
+Profile pic shape: = プロフィール画像の形状:
+Show window frame: = ウィンドウ枠を表示:
+(No transparency) = (透過なし)
+
+# === 表示オプション ===
+Hide header: = ヘッダーを非表示:
+Hide profile picture: = プロフィール画像を非表示:
+Hide quick access: = クイックアクセスを非表示:
+Hide categories text: = カテゴリ名を非表示:
+Hide app names: = アプリ名を非表示:
+Hide OS name: = OS名を非表示:
+Hide kernel: = カーネルを非表示:
+Hide hostname: = ホスト名を非表示:
+
+# === ヘッダーデザイン ===
+Header layout: = ヘッダーのレイアウト:
+Header text alignment: = ヘッダーのテキスト配置:
+Avatar left = アバター左
+Avatar right = アバター右
+Avatar center = アバター中央
+
+# === 形状と位置 ===
+square = 四角形
+circular = 円形
+top = 上
+bottom = 下
+center = 中央
+left = 左
+right = 右
+
+# === 配置 ===
+Horizontal alignment: = 水平方向の配置:
+Search bar position: = 検索バーの位置:
+
+# === 色 ===
+Use system theme: = システムテーマを使用:
+Background color: = 背景色:
+Border color: = 枠線の色:
+Categories background: = カテゴリの背景:
+Text normal: = 通常のテキスト:
+Header (OS): = ヘッダー (OS):
+Header (Kernel): = ヘッダー (カーネル):
+Header (Hostname): = ヘッダー (ホスト名):
+Hover background: = ホバー時の背景:
+Button background: = ボタンの背景:
+Button text: = ボタンのテキスト:
+
+# === フォント ===
+Font family: = フォントファミリー:
+Category font: = カテゴリのフォント:
+Category size: = カテゴリのサイズ:
+App name size: = アプリ名のサイズ:
+Header size: = ヘッダーのサイズ:
+
+# === パス ===
+Profile pic path: = プロフィール画像のパス:
+Profile manager: = プロフィール管理:
+Shutdown command: = シャットダウンコマンド:
+JWM Tray config: = JWMトレイ設定:
+Tint2 config: = Tint2設定:
+Use Tint2 (instead of JWM): = Tint2を使用 (JWMの代わり):
+
+# === カテゴリ ===
+Excluded categories: = 除外するカテゴリ:
+Select categories to hide from menu = メニューから隠すカテゴリを選択
+
+# === カテゴリ名 ===
+Desktop = デスクトップ
+System = システム
+Setup = 設定
+Utility = ユーティリティ
+Filesystem = ファイルシステム
+Graphic = グラフィック
+Document = ドキュメント
+Business = ビジネス
+Personal = 個人用
+Network = ネットワーク
+Internet = インターネット
+Multimedia = マルチメディア
+Fun = ゲーム・娯楽
+Help = ヘルプ
+Rectify = 修正
+Shutdown = シャットダウン
+Leave = ログアウト

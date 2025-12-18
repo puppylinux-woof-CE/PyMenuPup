@@ -1,0 +1,139 @@
+# ============================================
+# PyMenuPup - الترجمة العربية
+# ملف: ar.lang
+# ============================================
+
+# === النافذة الرئيسية ===
+PyMenuPup Configurator = أداة ضبط PyMenuPup
+Window = نافذة
+Colors = ألوان
+Font = الخط
+Paths = المسارات
+Categories = الفئات
+Save = حفظ
+Exit = خروج
+
+# === رسائل النظام ===
+Config file not found. Creating default config. = لم يتم العثور على ملف الإعدادات. يتم إنشاء إعدادات افتراضية.
+Error loading config file: = خطأ أثناء تحميل ملف الإعدادات:
+Using default config. = استخدام الإعدادات الافتراضية.
+Config saved (without closing). = تم حفظ الإعدادات (دون إغلاق).
+An error occurred: = حدث خطأ:
+
+# === الواجهة الرئيسية ===
+Search applications... = بحث عن التطبيقات...
+Shutdown = إيقاف التشغيل
+Search in the web = بحث في الويب
+Pymenu config = إعدادات Pymenu
+Select avatar = اختر الصورة الشخصية
+Terminal = الطرفية
+Terminal emulator = محاكي الطرفية
+File Manager = مدير الملفات
+File manager = مدير الملفات
+Firefox = فايرفوكس
+Web browser = متصفح الويب
+Run = تشغيل
+Create desktop shortcut = إنشاء اختصار على سطح المكتب
+
+# === مجلدات المستخدم ===
+DownloadsDir = التنزيلات
+MusicDir = الموسيقى
+VideosDir = الفيديوهات
+PicturesDir = الصور
+DocumentsDir = المستندات
+Open directory: = فتح المجلد:
+
+# === الشبكات الاجتماعية ===
+Social Networks = شبكات التواصل الاجتماعي
+Hide social networks: = إخفاء شبكات التواصل الاجتماعي:
+
+# === خيارات النافذة ===
+Window width: = عرض النافذة:
+Window height: = ارتفاع النافذة:
+Icon size: = حجم الأيقونات:
+Category icon size: = حجم أيقونات الفئات:
+Profile pic size: = حجم صورة الملف الشخصي:
+Profile pic shape: = شكل صورة الملف الشخصي:
+Show window frame: = إظهار إطار النافذة:
+(No transparency) = (بدون شفافية)
+
+# === خيارات الظهور ===
+Hide header: = إخفاء الترويسة:
+Hide profile picture: = إخفاء صورة الملف الشخصي:
+Hide quick access: = إخفاء الوصول السريع:
+Hide categories text: = إخفاء نص الفئات:
+Hide app names: = إخفاء أسماء التطبيقات:
+Hide OS name: = إخفاء اسم نظام التشغيل:
+Hide kernel: = إخفاء النواة (Kernel):
+Hide hostname: = إخفاء اسم المضيف:
+
+# === تصميم الترويسة ===
+Header layout: = تخطيط الترويسة:
+Header text alignment: = محاذاة نص الترويسة:
+Avatar left = الصورة على اليسار
+Avatar right = الصورة على اليمين
+Avatar center = الصورة في المنتصف
+
+# === الأشكال والمواقع ===
+square = مربع
+circular = دائري
+top = أعلى
+bottom = أسفل
+center = وسط
+left = يسار
+right = يمين
+
+# === المحاذاة ===
+Horizontal alignment: = المحاذاة الأفقية:
+Search bar position: = موقع شريط البحث:
+
+# === الألوان ===
+Use system theme: = استخدام سمة النظام:
+Background color: = لون الخلفية:
+Border color: = لون الحدود:
+Categories background: = خلفية الفئات:
+Text normal: = النص العادي:
+Header (OS): = الترويسة (نظام التشغيل):
+Header (Kernel): = الترويسة (النواة):
+Header (Hostname): = الترويسة (اسم المضيف):
+Hover background: = الخلفية عند التمرير:
+Button background: = خلفية الزر:
+Button text: = نص الزر:
+
+# === الخطوط ===
+Font family: = عائلة الخط:
+Category font: = خط الفئات:
+Category size: = حجم الفئات:
+App name size: = حجم اسم التطبيق:
+Header size: = حجم الترويسة:
+
+# === المسارات ===
+Profile pic path: = مسار صورة الملف الشخصي:
+Profile manager: = مدير الملف الشخصي:
+Shutdown command: = أمر إيقاف التشغيل:
+JWM Tray config: = إعدادات شريط JWM:
+Tint2 config: = إعدادات Tint2:
+Use Tint2 (instead of JWM): = استخدام Tint2 (بدلاً من JWM):
+
+# === الفئات ===
+Excluded categories: = الفئات المستثناة:
+Select categories to hide from menu = اختر الفئات المراد إخفاؤها من القائمة
+
+# === أسماء الفئات ===
+Desktop = سطح المكتب
+System = النظام
+Setup = الإعدادات
+Utility = الأدوات المساعدة
+Filesystem = نظام الملفات
+Graphic = الرسوميات
+Document = المستندات
+Business = الأعمال
+Personal = شخصي
+Network = الشبكة
+Internet = الإنترنت
+Multimedia = الوسائط المتعددة
+Fun = تسلية
+Help = المساعدة
+Rectify = تصحيح
+Shutdown = إيقاف التشغيل
+Leave = خروج

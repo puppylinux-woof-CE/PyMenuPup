@@ -1,0 +1,139 @@
+# ============================================
+# PyMenuPup - Deutsche Übersetzung
+# Datei: de.lang
+# ============================================
+
+# === Hauptfenster ===
+PyMenuPup Configurator = PyMenuPup Konfigurator
+Window = Fenster
+Colors = Farben
+Font = Schriftart
+Paths = Pfade
+Categories = Kategorien
+Save = Speichern
+Exit = Beenden
+
+# === Systemmeldungen ===
+Config file not found. Creating default config. = Konfigurationsdatei nicht gefunden. Standardkonfiguration wird erstellt.
+Error loading config file: = Fehler beim Laden der Konfigurationsdatei:
+Using default config. = Standardkonfiguration wird verwendet.
+Config saved (without closing). = Konfiguration gespeichert (ohne zu schließen).
+An error occurred: = Ein Fehler ist aufgetreten:
+
+# === Haupt-GUI ===
+Search applications... = Anwendungen suchen...
+Shutdown = Herunterfahren
+Search in the web = Im Web suchen
+Pymenu config = Pymenu konfigurieren
+Select avatar = Avatar auswählen
+Terminal = Terminal
+Terminal emulator = Terminal-Emulator
+File Manager = Dateimanager
+File manager = Dateimanager
+Firefox = Firefox
+Web browser = Webbrowser
+Run = Ausführen
+Create desktop shortcut = Desktop-Verknüpfung erstellen
+
+# === Benutzerverzeichnisse ===
+DownloadsDir = Downloads
+MusicDir = Musik
+VideosDir = Videos
+PicturesDir = Bilder
+DocumentsDir = Dokumente
+Open directory: = Verzeichnis öffnen:
+
+# === Soziale Netzwerke ===
+Social Networks = Soziale Netzwerke
+Hide social networks: = Soziale Netzwerke ausblenden:
+
+# === Fensteroptionen ===
+Window width: = Fensterbreite:
+Window height: = Fensterhöhe:
+Icon size: = Symbolgröße:
+Category icon size: = Symbolgröße der Kategorien:
+Profile pic size: = Profilbildgröße:
+Profile pic shape: = Profilbildform:
+Show window frame: = Fensterrahmen anzeigen:
+(No transparency) = (Keine Transparenz)
+
+# === Sichtbarkeitsoptionen ===
+Hide header: = Kopfzeile ausblenden:
+Hide profile picture: = Profilbild ausblenden:
+Hide quick access: = Schnellzugriff ausblenden:
+Hide categories text: = Kategorien-Text ausblenden:
+Hide app names: = App-Namen ausblenden:
+Hide OS name: = OS-Namen ausblenden:
+Hide kernel: = Kernel ausblenden:
+Hide hostname: = Hostnamen ausblenden:
+
+# === Kopfzeilen-Design ===
+Header layout: = Kopfzeilen-Layout:
+Header text alignment: = Kopfzeilen-Textausrichtung:
+Avatar left = Avatar links
+Avatar right = Avatar rechts
+Avatar center = Avatar mittig
+
+# === Formen und Positionen ===
+square = Quadratisch
+circular = Kreisförmig
+top = Oben
+bottom = Unten
+center = Mitte
+left = Links
+right = Rechts
+
+# === Ausrichtung ===
+Horizontal alignment: = Horizontale Ausrichtung:
+Search bar position: = Position der Suchleiste:
+
+# === Farben ===
+Use system theme: = System-Theme verwenden:
+Background color: = Hintergrundfarbe:
+Border color: = Rahmenfarbe:
+Categories background: = Hintergrund der Kategorien:
+Text normal: = Normaler Text:
+Header (OS): = Kopfzeile (OS):
+Header (Kernel): = Kopfzeile (Kernel):
+Header (Hostname): = Kopfzeile (Hostname):
+Hover background: = Hover-Hintergrund:
+Button background: = Button-Hintergrund:
+Button text: = Button-Text:
+
+# === Schriftarten ===
+Font family: = Schriftfamilie:
+Category font: = Schriftart der Kategorien:
+Category size: = Größe der Kategorien:
+App name size: = App-Namensgröße:
+Header size: = Kopfzeilengröße:
+
+# === Pfade ===
+Profile pic path: = Profilbildpfad:
+Profile manager: = Profilmanager:
+Shutdown command: = Befehl zum Herunterfahren:
+JWM Tray config: = JWM Tray Konfiguration:
+Tint2 config: = Tint2 Konfiguration:
+Use Tint2 (instead of JWM): = Tint2 verwenden (statt JWM):
+
+# === Kategorien ===
+Excluded categories: = Ausgeschlossene Kategorien:
+Select categories to hide from menu = Kategorien zum Ausblenden auswählen
+
+# === Kategorienamen ===
+Desktop = Schreibtisch
+System = System
+Setup = Einstellungen
+Utility = Dienstprogramme
+Filesystem = Dateisystem
+Graphic = Grafik
+Document = Dokumente
+Business = Büro
+Personal = Persönlich
+Network = Netzwerk
+Internet = Internet
+Multimedia = Multimedia
+Fun = Unterhaltung
+Help = Hilfe
+Rectify = Korrigieren
+Shutdown = Herunterfahren
+Leave = Verlassen

@@ -1,0 +1,139 @@
+# ============================================
+# PyMenuPup - Tradução em Português
+# Arquivo: pt.lang
+# ============================================
+
+# === Janela Principal ===
+PyMenuPup Configurator = Configurador PyMenuPup
+Window = Janela
+Colors = Cores
+Font = Fonte
+Paths = Caminhos
+Categories = Categorias
+Save = Salvar
+Exit = Sair
+
+# === Mensagens do Sistema ===
+Config file not found. Creating default config. = Arquivo de configuração não encontrado. Criando configuração padrão.
+Error loading config file: = Erro ao carregar arquivo de configuração:
+Using default config. = Usando a configuração padrão.
+Config saved (without closing). = Configuração salva (sem fechar).
+An error occurred: = Ocorreu um erro:
+
+# === GUI Principal ===
+Search applications... = Pesquisar aplicativos...
+Shutdown = Desligar
+Search in the web = Pesquisar na web
+Pymenu config = Configurar Pymenu
+Select avatar = Selecionar avatar
+Terminal = Terminal
+Terminal emulator = Emulador de terminal
+File Manager = Gerenciador de Arquivos
+File manager = Gerenciador de arquivos
+Firefox = Firefox
+Web browser = Navegador web
+Run = Executar
+Create desktop shortcut = Criar atalho na área de trabalho
+
+# === Diretórios do Usuário ===
+DownloadsDir = Downloads
+MusicDir = Música
+VideosDir = Vídeos
+PicturesDir = Imagens
+DocumentsDir = Documentos
+Open directory: = Abrir diretório:
+
+# === Redes Sociais ===
+Social Networks = Redes Sociais
+Hide social networks: = Ocultar redes sociais:
+
+# === Opções de Janela ===
+Window width: = Largura da janela:
+Window height: = Altura da janela:
+Icon size: = Tamanho dos ícones:
+Category icon size: = Tamanho dos ícones das categorias:
+Profile pic size: = Tamanho da foto de perfil:
+Profile pic shape: = Formato da foto de perfil:
+Show window frame: = Mostrar moldura da janela:
+(No transparency) = (Sem transparência)
+
+# === Opções de Visibilidade ===
+Hide header: = Ocultar cabeçalho:
+Hide profile picture: = Ocultar foto de perfil:
+Hide quick access: = Ocultar acesso rápido:
+Hide categories text: = Ocultar texto das categorias:
+Hide app names: = Ocultar nomes dos apps:
+Hide OS name: = Ocultar nome do OS:
+Hide kernel: = Ocultar kernel:
+Hide hostname: = Ocultar hostname:
+
+# === Design do Cabeçalho ===
+Header layout: = Layout do cabeçalho:
+Header text alignment: = Alinhamento do texto do cabeçalho:
+Avatar left = Avatar à esquerda
+Avatar right = Avatar à direita
+Avatar center = Avatar ao centro
+
+# === Formas e Posições ===
+square = Quadrado
+circular = Circular
+top = Topo
+bottom = Baixo
+center = centro
+left = esquerda
+right = direita
+
+# === Alinhamento ===
+Horizontal alignment: = Alinhamento horizontal:
+Search bar position: = Posição da barra de busca:
+
+# === Cores ===
+Use system theme: = Usar tema do sistema:
+Background color: = Cor de fundo:
+Border color: = Cor da borda:
+Categories background: = Fundo das categorias:
+Text normal: = Texto normal:
+Header (OS): = Cabeçalho (OS):
+Header (Kernel): = Cabeçalho (Kernel):
+Header (Hostname): = Cabeçalho (Hostname):
+Hover background: = Fundo ao passar o mouse:
+Button background: = Fundo do botão:
+Button text: = Texto do botão:
+
+# === Fontes ===
+Font family: = Família da fonte:
+Category font: = Fonte das categorias:
+Category size: = Tamanho das categorias:
+App name size: = Tamanho do nome do app:
+Header size: = Tamanho do cabeçalho:
+
+# === Caminhos ===
+Profile pic path: = Caminho da foto de perfil:
+Profile manager: = Gerenciador de perfil:
+Shutdown command: = Comando de desligamento:
+JWM Tray config: = Configuração da bandeja JWM:
+Tint2 config: = Configuração Tint2:
+Use Tint2 (instead of JWM): = Usar Tint2 (em vez de JWM):
+
+# === Categorias ===
+Excluded categories: = Categorias excluídas:
+Select categories to hide from menu = Selecione as categorias para ocultar do menu
+
+# === Nomes de Categorias ===
+Desktop = Área de Trabalho
+System = Sistema
+Setup = Configuração
+Utility = Utilitários
+Filesystem = Sistema de Arquivos
+Graphic = Gráficos
+Document = Documentos
+Business = Negócios
+Personal = Pessoal
+Network = Rede
+Internet = Internet
+Multimedia = Multimídia
+Fun = Diversão
+Help = Ajuda
+Rectify = Retificar
+Shutdown = Desligar
+Leave = Sair

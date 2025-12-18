@@ -1,0 +1,139 @@
+# ============================================
+# PyMenuPup - Traduzione in Italiano
+# File: it.lang
+# ============================================
+
+# === Finestra Principale ===
+PyMenuPup Configurator = Configuratore PyMenuPup
+Window = Finestra
+Colors = Colori
+Font = Carattere
+Paths = Percorsi
+Categories = Categorie
+Save = Salva
+Exit = Esci
+
+# === Messaggi di Sistema ===
+Config file not found. Creating default config. = File di configurazione non trovato. Creazione configurazione predefinita. [cite: 2]
+Error loading config file: = Errore nel caricamento del file di configurazione: [cite: 3]
+Using default config. = Uso della configurazione predefinita.
+Config saved (without closing). = Configurazione salvata (senza chiudere). [cite: 4]
+An error occurred: = Si è verificato un errore:
+
+# === GUI Principale ===
+Search applications... = Cerca applicazioni...
+Shutdown = Spegni
+Search in the web = Cerca nel web
+Pymenu config = Configura Pymenu
+Select avatar = Seleziona avatar
+Terminal = Terminale
+Terminal emulator = Emulatore di terminale
+File Manager = Gestore File
+File manager = Gestore file
+Firefox = Firefox
+Web browser = Browser web
+Run = Esegui
+Create desktop shortcut = Crea scorciatoia sul desktop
+
+# === Directory Utente ===
+DownloadsDir = Scaricati
+MusicDir = Musica
+VideosDir = Video
+PicturesDir = Immagini
+DocumentsDir = Documenti
+Open directory: = Apri directory:
+
+# === Redi Sociali ===
+Social Networks = Social Network [cite: 5]
+Hide social networks: = Nascondi i social network: [cite: 5]
+
+# === Opzioni Finestra ===
+Window width: = Larghezza finestra:
+Window height: = Altezza finestra:
+Icon size: = Dimensione icone:
+Category icon size: = Dimensione icone categorie:
+Profile pic size: = Dimensione foto profilo:
+Profile pic shape: = Forma foto profilo:
+Show window frame: = Mostra cornice finestra:
+(No transparency) = (Senza trasparenza)
+
+# === Opzioni di Visibilità ===
+Hide header: = Nascondi intestazione:
+Hide profile picture: = Nascondi foto profilo:
+Hide quick access: = Nascondi accesso rapido:
+Hide categories text: = Nascondi testo categorie:
+Hide app names: = Nascondi nomi app: [cite: 6]
+Hide OS name: = Nascondi nome OS:
+Hide kernel: = Nascondi kernel:
+Hide hostname: = Nascondi hostname:
+
+# === Design Intestazione ===
+Header layout: = Layout intestazione:
+Header text alignment: = Allineamento testo intestazione:
+Avatar left = Avatar a sinistra
+Avatar right = Avatar a destra
+Avatar center = Avatar al centro
+
+# === Forme e Posizioni ===
+square = Quadrata
+circular = Circolare
+top = In alto
+bottom = In basso
+center = centro
+left = sinistra
+right = destra
+
+# === Allineamento ===
+Horizontal alignment: = Allineamento orizzontale:
+Search bar position: = Posizione barra di ricerca:
+
+# === Colori ===
+Use system theme: = Usa tema di sistema:
+Background color: = Sfondo:
+Border color: = Bordo: [cite: 7]
+Categories background: = Sfondo categorie:
+Text normal: = Testo normale:
+Header (OS): = Intestazione (OS):
+Header (Kernel): = Intestazione (Kernel):
+Header (Hostname): = Intestazione (Hostname):
+Hover background: = Sfondo al passaggio del mouse:
+Button background: = Sfondo pulsante:
+Button text: = Testo pulsante:
+
+# === Font ===
+Font family: = Famiglia carattere:
+Category font: = Carattere categorie:
+Category size: = Dimensione categorie:
+App name size: = Dimensione nomi app:
+Header size: = Dimensione intestazione:
+
+# === Percorsi ===
+Profile pic path: = Percorso foto profilo:
+Profile manager: = Gestore profilo:
+Shutdown command: = Comando di spegnimento:
+JWM Tray config: = Configurazione JWM Tray:
+Tint2 config: = Configurazione Tint2:
+Use Tint2 (instead of JWM): = Usa Tint2 (invece di JWM): [cite: 8]
+
+# === Categorie ===
+Excluded categories: = Categorie escluse:
+Select categories to hide from menu = Seleziona le categorie da nascondere dal menu
+
+# === Nomi delle Categorie ===
+Desktop = Scrivania
+System = Sistema
+Setup = Configurazione
+Utility = Utilità
+Filesystem = Sistema file
+Graphic = Grafica
+Document = Documenti
+Business = Lavoro
+Personal = Personale
+Network = Rete
+Internet = Internet
+Multimedia = Multimedia
+Fun = Svago
+Help = Aiuto
+Rectify = Rettifica
+Shutdown = Spegni
+Leave = Esci

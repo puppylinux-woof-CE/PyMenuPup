@@ -1,0 +1,139 @@
+# ============================================
+# PyMenuPup - Русская локализация
+# Файл: ru.lang
+# ============================================
+
+# === Главное окно ===
+PyMenuPup Configurator = Конфигуратор PyMenuPup
+Window = Окно
+Colors = Цвета
+Font = Шрифт
+Paths = Пути
+Categories = Категории
+Save = Сохранить
+Exit = Выход
+
+# === Системные сообщения ===
+Config file not found. Creating default config. = Конфигурационный файл не найден. Создание настроек по умолчанию.
+Error loading config file: = Ошибка при загрузке файла конфигурации:
+Using default config. = Использование конфигурации по умолчанию.
+Config saved (without closing). = Конфигурация сохранена (без закрытия).
+An error occurred: = Произошла ошибка:
+
+# === Главный интерфейс ===
+Search applications... = Поиск приложений...
+Shutdown = Выключение
+Search in the web = Поиск в интернете
+Pymenu config = Настройка Pymenu
+Select avatar = Выбрать аватар
+Terminal = Терминал
+Terminal emulator = Эмулятор терминала
+File Manager = Файловый менеджер
+File manager = Файловый менеджер
+Firefox = Firefox
+Web browser = Веб-браузер
+Run = Выполнить
+Create desktop shortcut = Создать ярлык на рабочем столе
+
+# === Пользовательские папки ===
+DownloadsDir = Загрузки
+MusicDir = Музыка
+VideosDir = Видео
+PicturesDir = Изображения
+DocumentsDir = Документы
+Open directory: = Открыть папку:
+
+# === Социальные сети ===
+Social Networks = Социальные сети
+Hide social networks: = Скрыть социальные сети:
+
+# === Параметры окна ===
+Window width: = Ширина окна:
+Window height: = Высота окна:
+Icon size: = Размер иконок:
+Category icon size: = Размер иконок категорий:
+Profile pic size: = Размер фото профиля:
+Profile pic shape: = Форма фото профиля:
+Show window frame: = Показать рамку окна:
+(No transparency) = (Без прозрачности)
+
+# === Параметры видимости ===
+Hide header: = Скрыть заголовок:
+Hide profile picture: = Скрыть фото профиля:
+Hide quick access: = Скрыть быстрый доступ:
+Hide categories text: = Скрыть текст категорий:
+Hide app names: = Скрыть названия приложений:
+Hide OS name: = Скрыть название ОС:
+Hide kernel: = Скрыть ядро:
+Hide hostname: = Скрыть имя хоста:
+
+# === Дизайн заголовка ===
+Header layout: = Макет заголовка:
+Header text alignment: = Выравнивание текста заголовка:
+Avatar left = Аватар слева
+Avatar right = Аватар справа
+Avatar center = Аватар по центру
+
+# === Формы и позиции ===
+square = Квадратный
+circular = Круглый
+top = Сверху
+bottom = Снизу
+center = по центру
+left = слева
+right = справа
+
+# === Выравнивание ===
+Horizontal alignment: = Горизонтальное выравнивание:
+Search bar position: = Позиция строки поиска:
+
+# === Цвета ===
+Use system theme: = Использовать системную тему:
+Background color: = Цвет фона:
+Border color: = Цвет границы:
+Categories background: = Фон категорий:
+Text normal: = Обычный текст:
+Header (OS): = Заголовок (ОС):
+Header (Kernel): = Заголовок (Ядро):
+Header (Hostname): = Заголовок (Хост):
+Hover background: = Фон при наведении:
+Button background: = Фон кнопки:
+Button text: = Текст кнопки:
+
+# === Шрифты ===
+Font family: = Семейство шрифтов:
+Category font: = Шрифт категорий:
+Category size: = Размер категорий:
+App name size: = Размер названия приложения:
+Header size: = Размер заголовка:
+
+# === Пути ===
+Profile pic path: = Путь к фото профиля:
+Profile manager: = Менеджер профиля:
+Shutdown command: = Команда выключения:
+JWM Tray config: = Конфигурация трея JWM:
+Tint2 config: = Конфигурация Tint2:
+Use Tint2 (instead of JWM): = Использовать Tint2 (вместо JWM):
+
+# === Категории ===
+Excluded categories: = Исключенные категории:
+Select categories to hide from menu = Выберите категории для скрытия из меню
+
+# === Названия категорий ===
+Desktop = Рабочий стол
+System = Система
+Setup = Настройка
+Utility = Утилиты
+Filesystem = Файловая система
+Graphic = Графика
+Document = Документы
+Business = Офис
+Personal = Личное
+Network = Сеть
+Internet = Интернет
+Multimedia = Мультимедиа
+Fun = Развлечения
+Help = Справка
+Rectify = Исправить
+Shutdown = Выключить
+Leave = Выйти
