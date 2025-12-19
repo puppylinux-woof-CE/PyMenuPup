@@ -90,7 +90,7 @@ class ConfigManager:
                 "width": 477,
                 "height": 427,
                 "decorated_window": False,
-                "hide_header": True,
+                "hide_header": False,
                 "hide_profile_pic": False,
                 "search_bar_position": "bottom",
                 "hide_quick_access": True,
@@ -138,10 +138,10 @@ class ConfigManager:
                 "tint2rc": "/root/.config/tint2/tint2rc"    
             },
             "search_engine": {
-                "engine": "google"
+                "engine": "duckduckgo"
             },
             "tray": {
-                "use_tint2": True
+                "use_tint2": False
             },
             "categories": {
                 "excluded": []
@@ -1117,17 +1117,40 @@ class ArcMenuLauncher(Gtk.Window):
             profile_pic_size = self.config['window'].get('profile_pic_size', 128)
             profile_pic_shape = self.config['window'].get('profile_pic_shape', 'square')
             
-            try:
-                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(profile_pic_path, profile_pic_size, profile_pic_size, True)
+            pixbuf = None
+
+            # 1. Intentar cargar el .face del usuario
+            if os.path.exists(profile_pic_path):
+                try:
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                        profile_pic_path, profile_pic_size, profile_pic_size, True
+                    )
+                except Exception as e:
+                    print(f"Error cargando .face: {e}")
+
+            # 2. Si no hay .face, buscar el genérico en el sistema (esencia preservada)
+            if pixbuf is None:
+                # Lista de nombres comunes en /usr/share/icons
+                icon_names = ["user-info", "avatar-default", "user-available", "system-users"]
+                theme = Gtk.IconTheme.get_default()
                 
+                for name in icon_names:
+                    if theme.has_icon(name):
+                        try:
+                            # Cargamos el icono del sistema como Pixbuf para poder manipularlo
+                            pixbuf = theme.load_icon(name, profile_pic_size, Gtk.IconLookupFlags.FORCE_SIZE)
+                            break
+                        except:
+                            continue
+
+            # 3. Aplicar forma y mostrar
+            if pixbuf:
                 if profile_pic_shape == 'circular':
                     pixbuf = apply_circular_mask(pixbuf)
-                    
                 self.profile_image.set_from_pixbuf(pixbuf)
-                
-            except Exception as e:
-                print(f"Failed to load profile picture: {e}")
-                self.profile_image.set_from_icon_name("avatar-default", Gtk.IconSize.DIALOG)
+            else:
+                # Caso extremo: si ni el genérico existe, poner uno de stock simple
+                self.profile_image.set_from_icon_name("image-missing", Gtk.IconSize.DIALOG)
         
         load_profile_image()
     

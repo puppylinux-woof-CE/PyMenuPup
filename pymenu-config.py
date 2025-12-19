@@ -43,35 +43,35 @@ class ConfigManager:
         """Devuelve una configuración predeterminada."""
         return {
             "window": {
-                "width": 700,
-                "height": 850,
+                "width": 477,
+                "height": 427,
                 "decorated_window": False,
-                "hide_header": False, 
+                "hide_header": False,
                 "hide_profile_pic": False,
                 "search_bar_position": "bottom",
-                "hide_quick_access": False,
-                "hide_social_networks": False,
-                "hide_category_text": False,
+                "hide_quick_access": True,
+                "hide_social_networks": True,
                 "halign": "center",
                 "icon_size": 32,
-                "category_icon_size": 16,
-                "profile_pic_size": 128,
+                "profile_pic_size": 64,
                 "profile_pic_shape": "square", 
-                "header_layout": "left",  
+                "hide_category_text": False,
+                "category_icon_size": 16,
+                "header_layout": "left",
                 "header_text_align": "left",
                 "hide_os_name": False,
                 "hide_kernel": False,
-                "hide_hostname": False 
+                "hide_hostname": False
             },
             "font": {
-                "family": "Terminess Nerd Font Propo",
-                "family_categories": "Terminess Nerd Font Propo",
-                "size_categories": 15000,
-                "size_names": 14000,
-                "size_header": 16000
+                "family": "Sans",
+                "family_categories": "Sans",
+                "size_categories": 12000,
+                "size_names": 10000,
+                "size_header": 8000
             },
             "colors": {
-                "use_gtk_theme": False,
+                "use_gtk_theme": True,
                 "background_opacity": 0.7,
                 "background": "rgba(0, 0, 0, 0.7)",
                 "border": "rgba(255, 255, 255, 0.1)",
@@ -84,17 +84,17 @@ class ConfigManager:
                 "selected_text": "#ECEFF4",
                 "button_normal_background": "rgba(0,0,0,0.6)",
                 "button_text": "#ECEFF4",
-                "categories_background": "rgba(0,0,0,0.6)",
+                "categories_background": "rgba(0,0,0,0.4)"
             },
             "paths": {
                 "profile_pic": "/root/.face",
                 "profile_manager": "/usr/local/bin/ProfileManager.py",
                 "shutdown_cmd": "/usr/local/bin/apagado-avatar.py",
                 "jwmrc_tray": "/root/.jwmrc-tray",          
-                "tint2rc": "/root/.config/tint2/tint2rc"   
-             },
+                "tint2rc": "/root/.config/tint2/tint2rc"    
+            },
             "search_engine": {
-                "engine": "google"        
+                "engine": "duckduckgo"
             },
             "tray": {
                 "use_tint2": False
