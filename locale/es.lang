@@ -139,3 +139,23 @@ Help = Ayuda
 Rectify = Rectificar
 Shutdown = Apagar
 Leave = Salir
+
+# === Mensajes de Terminal ===
+Loading translations from: = Cargando traducciones desde:
+Category map built with = Category map construido con
+entries = entradas
+Window Manager detected: = Window Manager detectado:
+Using user config = Usando configuración del usuario
+Automatically using Tint2 config = Usando configuración de Tint2 automáticamente
+Tray config detected from = Configuración de tray detectada desde
+Now monitoring JWM file for changes: = Monitoreando cambios en archivo JWM:
+Folder created: = Carpeta creada:
+Mouse entered applications area = El ratón entró en el área de aplicaciones
+Using GTK theme colors = Usando colores del tema GTK
+PyMenu Configurator = Configurador de PyMenu
+Config file not found. Creating default config. = Archivo de configuración no encontrado. Creando configuración por defecto.
+Error loading config file: = Error al cargar el archivo de configuración:
+Using default config. = Usando configuración por defecto.
+Config saved (without closing). = Configuración guardada (sin cerrar).
+An error occurred: = Ha ocurrido un error:
+ERROR: Could not load pymenupuplang.py = ERROR: No se pudo cargar pymenupuplang.py

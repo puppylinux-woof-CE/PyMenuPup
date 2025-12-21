@@ -119,7 +119,26 @@ class TranslationManager:
         'Select shutdown command': 'Select shutdown command',
         'Select JWM config': 'Select JWM config',
         'Select Tint2 config': 'Select Tint2 config',
-        'Search engine:': 'Search engine:'
+        'Search engine:': 'Search engine:',
+        'Loading translations from:': 'Loading translations from:',
+        'Category map built with': 'Category map built with',
+        'entries': 'entries',
+        'Window Manager detected:': 'Window Manager detected:',
+        'Using user config': 'Using user config',
+        'Automatically using Tint2 config': 'Automatically using Tint2 config',
+        'Tray config detected from': 'Tray config detected from:',
+        'Now monitoring JWM file for changes:': 'Now monitoring JWM file for changes:',
+        'Folder created:': 'Folder created:',
+        'Error creating folder': 'Error creating folder',
+        'Mouse entered applications area': 'Mouse entered applications area',
+        'Using GTK theme colors': 'Using GTK theme colors',
+        'ERROR: Could not load pymenupuplang.py': 'ERROR: Could not load pymenupuplang.py',
+        'Config file not found. Creating default config.': 'Config file not found. Creating default config.',
+        'Error loading config file:': 'Error loading config file:',
+        'Using default config.': 'Using default config.',
+        'Config saved (without closing).': 'Config saved (without closing).',
+        'An error occurred:': 'An error occurred:',
+        'PyMenu Configurator': 'PyMenu Configurator'
     }
     
     def __init__(self):

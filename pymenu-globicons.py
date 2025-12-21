@@ -57,7 +57,7 @@ def open_directory(path):
         try:
             # Si no existe, la crea con el nombre traducido (ej. 'Descargas')
             os.makedirs(expanded_path, exist_ok=True)
-            print(f"Carpeta creada: {expanded_path}")
+            print(f"{TR['Folder created:']} {expanded_path}")
         except Exception as e:
             print(f"Error al crear la carpeta {expanded_path}: {e}")
             return 
@@ -186,7 +186,7 @@ def detect_window_manager():
             if 'openbox-session' in wm_content or 'openbox' in wm_content:
                 return 'openbox'
     except FileNotFoundError:
-        print("Archivo /etc/windowmanager no encontrado, asumiendo JWM")
+        print(f"{TR['File /etc/windowmanager not found, assuming JWM']}")
     except Exception as e:
         print(f"Error leyendo /etc/windowmanager: {e}")
     
@@ -290,7 +290,7 @@ class JWMMenuParser:
         # Si es Openbox, forzar uso de tint2
         if detected_wm == 'openbox':
             use_tint2 = True
-            print(f"🔍 Window Manager detectado: Openbox → Usando configuración de Tint2 automáticamente")
+            print(f"🔍 {TR['Window Manager detected:']} Openbox → {TR['Automatically using Tint2 config']}")
         else:
             # Si es JWM, usar la preferencia del usuario del JSON
             use_tint2 = config.get('tray', {}).get('use_tint2', False)
@@ -542,7 +542,7 @@ class JWMMenuParser:
         
 class ArcMenuLauncher(Gtk.Window):
     def __init__(self, icon_size=None, jwm_file=None, x=None, y=None):
-        super().__init__(title="Pymenu")
+        super().__init__(title="PyMenuPup")
         
         self.config_manager = ConfigManager()
         self.config = self.config_manager.config
@@ -587,7 +587,7 @@ class ArcMenuLauncher(Gtk.Window):
         self.jwm_file = Gio.File.new_for_path(jwm_file_path)
         self.file_monitor = self.jwm_file.monitor_file(Gio.FileMonitorFlags.NONE, None)
         self.file_monitor.connect("changed", self.on_jwm_file_changed)
-        print(f"Now monitoring JWM file for changes: {jwm_file_path}")
+        print(f"{TR['Now monitoring JWM file for changes:']} {jwm_file_path}")
 
     def apply_css(self):
         """Loads and applies CSS from the configuration."""
@@ -611,7 +611,7 @@ class ArcMenuLauncher(Gtk.Window):
                 padding: 5px 10px 10px 10px;
             }
             """
-            print("Using GTK theme colors")
+            print(TR['Using GTK theme colors'])
         else:
             # CSS personalizado original
             colors = self.config['colors']
@@ -1661,7 +1661,7 @@ class ArcMenuLauncher(Gtk.Window):
     
     def on_apps_area_enter(self, widget, event):
         """Handle mouse entering the applications area"""
-        print("Mouse entered applications area")
+        print(TR['Mouse entered applications area'])
         return False
     
     def create_statusbar(self):

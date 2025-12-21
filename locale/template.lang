@@ -1,0 +1,114 @@
+# ============================================
+# PyMenuPup - Translation Template
+# Version: 1.1
+# Instructions: Copy this file as 'your_language_code.lang' 
+# (e.g., fr.lang, de.lang) and translate the text after the '='.
+# ============================================
+
+# === Main Window / Configurator ===
+PyMenuPup Configurator = 
+Window = 
+Colors = 
+Font = 
+Paths = 
+Categories = 
+Save = 
+Exit = 
+
+# === System Messages (Config) ===
+Config file not found. Creating default config. = 
+Error loading config file: = 
+Using default config. = 
+Config saved (without closing). = 
+An error occurred: = 
+ERROR: Could not load pymenupuplang.py = 
+
+# === Terminal Output (Logging) ===
+Loading translations from: = 
+Category map built with = 
+entries = 
+Window Manager detected: = 
+Using user config = 
+Automatically using Tint2 config = 
+Tray config detected from = 
+Now monitoring JWM file for changes: = 
+Folder created: = 
+Mouse entered applications area = 
+Using GTK theme colors = 
+
+# === Main Menu GUI (pymenu-globicons.py) ===
+Search applications... = 
+Shutdown = 
+Leave = 
+Search in the web = 
+Pymenu config = 
+Select avatar = 
+Terminal = 
+Terminal emulator = 
+File Manager = 
+Web browser = 
+Run = 
+Create desktop shortcut = 
+Acceso directo creado: = 
+Comando validado: = 
+Error creando acceso directo: = 
+
+# === User Directories (XDG) ===
+DownloadsDir = 
+MusicDir = 
+VideosDir = 
+PicturesDir = 
+DocumentsDir = 
+Open directory: = 
+
+# === Social Networks ===
+Social Networks = 
+Hide social networks = 
+
+# === GUI Configuration Settings ===
+General = 
+Search bar position: = 
+Use system theme: = 
+Background color: = 
+Border color: = 
+Categories background: = 
+Text normal: = 
+Header (OS): = 
+Header (Kernel): = 
+Header (Hostname): = 
+Hover background: = 
+Button background: = 
+Button text: = 
+Font family: = 
+Category font: = 
+Category size: = 
+App name size: = 
+Header size: = 
+Profile pic path: = 
+Profile manager: = 
+Shutdown command: = 
+JWM Tray config: = 
+Tint2 config: = 
+Use Tint2 (instead of JWM): = 
+Search engine: = 
+
+# === Categories ===
+Excluded categories: = 
+Select categories to hide from menu = 
+
+# === Category Names ===
+Desktop = 
+System = 
+Setup = 
+Utility = 
+Filesystem = 
+Graphic = 
+Document = 
+Business = 
+Personal = 
+Network = 
+Internet = 
+Multimedia = 
+Fun = 
+Help = 
+Rectify =
