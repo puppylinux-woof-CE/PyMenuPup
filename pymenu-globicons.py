@@ -95,14 +95,14 @@ class ConfigManager:
                 "search_bar_position": "bottom",
                 "hide_quick_access": True,
                 "hide_social_networks": True,
-                "halign": "center",
+                "halign": "left",
                 "icon_size": 32,
                 "profile_pic_size": 64,
                 "profile_pic_shape": "square", 
                 "hide_category_text": False,
                 "category_icon_size": 16,
                 "header_layout": "left",
-                "header_text_align": "left",
+                "header_text_align": "center",
                 "hide_os_name": False,
                 "hide_kernel": False,
                 "hide_hostname": False
@@ -110,25 +110,25 @@ class ConfigManager:
             "font": {
                 "family": "Sans",
                 "family_categories": "Sans",
-                "size_categories": 16000,
-                "size_names": 14000,
-                "size_header": 12000
+                "size_categories": 13000,
+                "size_names": 11000,
+                "size_header": 17000
             },
             "colors": {
                 "use_gtk_theme": True,
                 "background_opacity": 0.7,
-                "background": "rgba(0, 0, 0, 0.7)",
+                "background": "rgba(0, 0, 0, 0.88)",
                 "border": "rgba(255, 255, 255, 0.1)",
-                "text_normal": "#D8DEE9",
+                "text_normal": "#deddda",
                 "text_header_os": "#D8DEE9",
-                "text_header_kernel": "#D0883A",
-                "text_header_hostname": "#88C0D0",
-                "hover_background": "rgba(255, 255, 255, 0.1)",
+                "text_header_kernel": "#deddda",
+                "text_header_hostname": "#deddda",
+                "hover_background": "rgba(255, 255, 255, 0.10)",
                 "selected_background": "rgba(255, 255, 255, 0.2)",
                 "selected_text": "#ECEFF4",
-                "button_normal_background": "rgba(0,0,0,0.6)",
-                "button_text": "#ECEFF4",
-                "categories_background": "rgba(0,0,0,0.4)"
+                "button_normal_background": "rgba(191, 63, 63, 0.00)",
+                "button_text": "rgba(222, 221, 218, 1.00)",
+                "categories_background": "rgba(191, 63, 63, 0.00)"
             },
             "paths": {
                 "profile_pic": "",
