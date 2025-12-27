@@ -1474,12 +1474,13 @@ class ArcMenuLauncher(Gtk.Window):
             
             places_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 5)
         
-        # 2. LUGARES DEL SISTEMA (Home, Downloads, etc.)
+# 2. LUGARES DEL SISTEMA (Home, Downloads, etc.)
         system_places = [
             ('user-home', TR.get('Home', 'Home'), '~'),
             ('folder-download', TR.get('DownloadsDir', 'Downloads'), f"~/{TR.get('DownloadsDir', 'Downloads')}"),
             ('folder-music', TR.get('MusicDir', 'Music'), f"~/{TR.get('MusicDir', 'Music')}"),
             ('folder-documents', TR.get('DocumentsDir', 'Documents'), f"~/{TR.get('DocumentsDir', 'Documents')}"),
+            ('folder-pictures', TR.get('PicturesDir', 'Pictures'), f"~/{TR.get('PicturesDir', 'Pictures')}"),
             ('folder-videos', TR.get('VideosDir', 'Videos'), f"~/{TR.get('VideosDir', 'Videos')}"),
         ]
         
