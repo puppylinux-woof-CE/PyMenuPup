@@ -83,8 +83,8 @@ class ConfigManager:
         """Devuelve una configuración predeterminada."""
         return {
             "window": {
-                "width": 477,
-                "height": 527,
+                "width": 715,
+                "height": 491,
                 "decorated_window": False,
                 "hide_header": False,
                 "hide_profile_pic": False,
@@ -112,7 +112,7 @@ class ConfigManager:
                 "family_categories": "Sans",
                 "size_categories": 13000,
                 "size_names": 11000,
-                "size_header": 17000
+                "size_header": 13000
             },
             "colors": {
                 "use_gtk_theme": True,
@@ -2424,43 +2424,69 @@ class ArcMenuLauncher(Gtk.Window):
             print(f"Failed to launch browser: {e}")
     
     def on_app_clicked(self, button, app_info):
-            """Handle application launch - Fix para carpetas forzadas"""
-            try:
-                GLib.timeout_add(50, lambda: Gtk.main_quit())
-                
-                command = app_info.get('Exec', '')
-                name = app_info.get('Name', 'Unknown')
-                
-                if not command:
+        """Handle application launch - Fix para carpetas forzadas y gtk-launch"""
+        try:
+            GLib.timeout_add(50, lambda: Gtk.main_quit())
+            
+            command = app_info.get('Exec', '')
+            name = app_info.get('Name', 'Unknown')
+            
+            if not command:
+                return
+    
+            # --- CORRECCIÓN DINÁMICA DE CARPETAS ---
+            import re
+            path_match = re.search(r'(/[^\s\']+)', command)
+            if path_match:
+                potential_path = os.path.expanduser(path_match.group(1))
+                if os.path.isdir(potential_path):
+                    print(f"🗂️ DEBUG: Detectada ruta en comando, abriendo con sistema: {potential_path}")
+                    open_directory(potential_path)
                     return
+            # ---------------------------------------
     
-                # --- CORRECCIÓN DINÁMICA DE CARPETAS ---
-                # Si el comando contiene una ruta absoluta (empieza por / o tiene /root, /home, etc)
-                # Intentamos extraer esa ruta para usar el gestor por defecto
-                import re
-                path_match = re.search(r'(/[^\s\']+)', command)
-                if path_match:
-                    potential_path = os.path.expanduser(path_match.group(1))
-                    if os.path.isdir(potential_path):
-                        print(f"📁 DEBUG: Detectada ruta en comando, abriendo con sistema: {potential_path}")
-                        open_directory(potential_path)
-                        return
-                # ---------------------------------------
-    
-                # Si el comando usa gtk-launch... (mantén tu lógica actual aquí)
-                if command.startswith('gtk-launch '):
-                    # ... (tu código de búsqueda de .desktop) ...
-                    pass
-    
-                print(f"▶️ Ejecutando comando: {command}")
-                subprocess.Popen(command, 
-                                shell=True,
-                                stdout=subprocess.DEVNULL,
-                                stderr=subprocess.DEVNULL,
-                                start_new_session=True)
+            # 🔧 FIX PARA GTK-LAUNCH
+            if command.startswith('gtk-launch '):
+                desktop_name = command.replace('gtk-launch ', '').strip()
                 
-            except Exception as e:
-                print(f"❌ Error lanzando {name}: {e}")          
+                # Buscar el archivo .desktop en las rutas estándar
+                desktop_paths = [
+                    "/usr/share/applications/",
+                    "/usr/local/share/applications/",
+                    os.path.expanduser("~/.local/share/applications/")
+                ]
+                
+                for base_path in desktop_paths:
+                    desktop_file = os.path.join(base_path, desktop_name)
+                    if not desktop_file.endswith('.desktop'):
+                        desktop_file += '.desktop'
+                    
+                    if os.path.exists(desktop_file):
+                        # Extraer el comando Exec= del archivo .desktop
+                        try:
+                            with open(desktop_file, 'r') as f:
+                                for line in f:
+                                    if line.startswith('Exec='):
+                                        command = line.replace('Exec=', '').strip()
+                                        # Limpiar parámetros %f, %F, %u, etc.
+                                        command = re.sub(r'\s+%\w+', '', command)
+                                        break
+                        except Exception as e:
+                            print(f"❌ Error leyendo {desktop_file}: {e}")
+                        break
+            
+            # Limpiar el comando de parámetros .desktop
+            command = re.sub(r'\s+%\w+', '', command).strip()
+            
+            print(f"▶️ Ejecutando comando: {command}")
+            subprocess.Popen(command, 
+                            shell=True,
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                            start_new_session=True)
+            
+        except Exception as e:
+            print(f"❌ Error lanzando {name}: {e}")       
             
     def launch_application(self, app_info):
         """Función centralizada para lanzar cualquier aplicación"""

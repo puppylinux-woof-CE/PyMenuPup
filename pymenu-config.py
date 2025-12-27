@@ -43,8 +43,8 @@ class ConfigManager:
         """Devuelve una configuración predeterminada."""
         return {
             "window": {
-                "width": 477,
-                "height": 527,
+                "width": 715,
+                "height": 491,
                 "decorated_window": False,
                 "hide_header": False,
                 "hide_profile_pic": False,
@@ -72,7 +72,7 @@ class ConfigManager:
                 "family_categories": "Sans",
                 "size_categories": 13000,
                 "size_names": 11000,
-                "size_header": 17000
+                "size_header": 13000
             },
             "colors": {
                 "use_gtk_theme": True,
