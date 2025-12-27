@@ -67,6 +67,12 @@ Hide app names: = Ocultar nombres de apps:
 Hide OS name: = Ocultar nombre del OS:
 Hide kernel: = Ocultar kernel:
 Hide hostname: = Ocultar hostname:
+Hide places sidebar: = Ocultar barra lateral de lugares:
+(Hides both places and favorites) = (Oculta tanto lugares como favoritos)
+Hide favorites only: = Ocultar solo favoritos:
+(Show places but hide favorites) = (Mostrar lugares pero ocultar favoritos)
+Show profile in places sidebar: = Mostrar perfil en barra lateral de lugares:
+(Instead of header) = (En lugar del encabezado)
 
 # === Diseño del Encabezado ===
 Header layout: = Diseño del encabezado:
@@ -159,3 +165,37 @@ Using default config. = Usando configuración por defecto.
 Config saved (without closing). = Configuración guardada (sin cerrar).
 An error occurred: = Ha ocurrido un error:
 ERROR: Could not load pymenupuplang.py = ERROR: No se pudo cargar pymenupuplang.py
+
+# === FAVORITOS ===
+Favorites = Favoritos
+Add favorite = Agregar favorito
+No favorites yet. Click here to add one. = Sin favoritos aún. Haz clic aquí para agregar.
+Add Favorite = Agregar Favorito
+Add = Agregar
+Select an application: = Selecciona una aplicación:
+Search applications... = Buscar aplicaciones...
+Application = Aplicación
+Select a directory: = Selecciona un directorio:
+Path to directory = Ruta al directorio
+Browse... = Explorar...
+Directory = Carpeta
+Name: = Nombre:
+Favorite name = Nombre del favorito
+Command: = Comando:
+Command to execute = Comando a ejecutar
+Icon (optional): = Icono (opcional):
+Icon name or path = Nombre o ruta del icono
+Browse icon = Explorar icono
+Open File Manager = Abrir Administrador de Archivos
+Command = Comando
+Select Directory = Seleccionar Directorio
+Select Icon = Seleccionar Icono
+Image files = Archivos de imagen
+All files = Todos los archivos
+
+# === MENSAJES DE CONFIGURACIÓN ===
+Select profile picture = Seleccionar foto de perfil
+Select profile manager = Seleccionar gestor de perfil
+Select shutdown command = Seleccionar comando de apagado
+Select JWM config = Seleccionar configuración JWM
+Select Tint2 config = Seleccionar configuración Tint2

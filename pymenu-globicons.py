@@ -41,7 +41,7 @@ CATEGORY_MAP = TR.get_category_map()
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
 
-CONFIG_FILE = os.path.expanduser("~/.config/pymenu.json")
+CONFIG_FILE = "/root/.config/pymenu.json"
 
 
 def open_directory(path):
@@ -78,7 +78,7 @@ class ConfigManager:
         self.config = self.load_config()
 
     def get_default_config(self):
-        """Return the default configuration matching the current script's aesthetics."""
+        """Devuelve una configuración predeterminada."""
         return {
             "window": {
                 "width": 477,
@@ -86,6 +86,9 @@ class ConfigManager:
                 "decorated_window": False,
                 "hide_header": False,
                 "hide_profile_pic": False,
+                "profile_in_places": True,
+                "hide_places": False,
+                "hide_favorites": False, 
                 "search_bar_position": "bottom",
                 "hide_quick_access": True,
                 "hide_social_networks": True,
@@ -99,7 +102,8 @@ class ConfigManager:
                 "header_text_align": "center",
                 "hide_os_name": False,
                 "hide_kernel": False,
-                "hide_hostname": False
+                "hide_hostname": False,
+                "hide_app_names": False
             },
             "font": {
                 "family": "Sans",
@@ -139,7 +143,8 @@ class ConfigManager:
             },
             "categories": {
                 "excluded": []
-            }
+            },
+            "favorites": []
         }
 
     def load_config(self):
@@ -933,6 +938,27 @@ class ArcMenuLauncher(Gtk.Window):
             if not self.is_resizing and not self.context_menu_active:
                 Gtk.main_quit()
             return False
+            
+    def load_favorites(self):
+            """Carga los favoritos desde el archivo de configuración"""
+            favorites_list = []
+            # El CONFIG_FILE ya está definido al inicio de tu script
+            if os.path.exists(CONFIG_FILE):
+                try:
+                    with open(CONFIG_FILE, 'r') as f:
+                        config = json.load(f)
+                        # Extraer la sección 'favorites' del JSON
+                        favs = config.get('favorites', [])
+                        for fav in favs:
+                            favorites_list.append({
+                                "Name": fav.get('name', 'Fav'),
+                                "Exec": fav.get('exec', ''),
+                                "Icon": fav.get('icon', 'star'),
+                                "IsFavorite": True 
+                            })
+                except Exception as e:
+                    print(f"Error cargando favoritos: {e}")
+            return favorites_list            
                     
     def create_interface(self):
         """Create the main interface"""
@@ -960,17 +986,23 @@ class ArcMenuLauncher(Gtk.Window):
         
         main_box.pack_start(content_box, True, True, 0)
     
-        # Columna 1: Redes sociales (solo si no están ocultas en la config)
+        # Columna 1: Places (Lugares) - nueva columna
+        if not self.config['window'].get('hide_places', False):
+            places_sidebar = self.create_places_sidebar()
+            content_box.pack_start(places_sidebar, False, False, 0)
+            content_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), False, False, 0)
+        
+        # Columna 2: Redes sociales (solo si no están ocultas en la config)
         if not self.config['window'].get('hide_social_networks', False):
             social_sidebar = self.create_social_networks_sidebar()
             content_box.pack_start(social_sidebar, False, False, 0)
             content_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), False, False, 0)
         
-        # Columna 2: Categorías
+        # Columna 3: Categorías
         content_box.pack_start(self.create_categories_sidebar(), False, False, 0)
         content_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), False, False, 0)
         
-        # Columna 3: Aplicaciones
+        # Columna 4: Aplicaciones
         content_box.pack_start(self.create_applications_area(), True, True, 0)
         
         # === NUEVA LÓGICA: Verificar posición de la barra de búsqueda ===
@@ -1081,12 +1113,18 @@ class ArcMenuLauncher(Gtk.Window):
         
     def create_header(self):
         """Create the top header with profile picture, OS, kernel, and hostname"""
+        # Si el perfil está en Places, solo mostrar info del sistema
+        if self.config['window'].get('profile_in_places', False):
+            return self.create_system_info_only()
+        
         header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=50)
         header_box.set_margin_top(1)
         header_box.set_margin_bottom(1)
         header_box.set_margin_start(5)
         header_box.set_margin_end(5)
         hide_profile = self.config['window'].get('hide_profile_pic', False)
+    
+    # ... resto del código original continúa igual
     
         # === CREAR EL PERFIL ===
         profile_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -1214,15 +1252,15 @@ class ArcMenuLauncher(Gtk.Window):
             kernel_label.set_max_width_chars(30)
             system_info_box.pack_start(kernel_label, False, False, 0)
         
-        # Hostname Label - solo mostrar si no está oculto
-        if not self.config['window'].get('hide_hostname', False):
+        # Hostname Label - solo mostrar si no está oculto Y si no está en Places
+        if not self.config['window'].get('hide_hostname', False) and not self.config['window'].get('profile_in_places', False):
             hostname_label = Gtk.Label()
             if use_gtk_theme:
                 hostname_label.set_markup(f' {hostname}')
             else:
                 hostname_label.set_markup(f'<span color="{self.config["colors"]["text_header_hostname"]}"> {hostname}</span>')
             hostname_label.override_font(header_font_description)
-            hostname_label.set_halign(gtk_align)  # ← APLICAR ALINEACIÓN
+            hostname_label.set_halign(gtk_align)
             hostname_label.set_ellipsize(3)
             hostname_label.set_max_width_chars(30)
             system_info_box.pack_start(hostname_label, False, False, 0)
@@ -1267,6 +1305,41 @@ class ArcMenuLauncher(Gtk.Window):
                     monitor.connect("changed", on_file_changed)
         
         return header_box
+        
+    def create_system_info_only(self):
+        """Crear solo la información del sistema sin el perfil"""
+        header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        header_box.set_margin_top(1)
+        header_box.set_margin_bottom(1)
+        header_box.set_margin_start(5)
+        header_box.set_margin_end(5)
+        
+        system_info_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+        system_info_box.set_valign(Gtk.Align.CENTER)
+        
+        os_name, kernel = self.get_os_info()
+        hostname = self.get_hostname()
+        
+        # Verificar si el perfil está en Places
+        profile_in_places = self.config['window'].get('profile_in_places', False)
+        
+        # ... (código existente para OS y Kernel) ...
+        
+        # SOLO mostrar hostname en el header si el perfil NO está en Places
+        if not self.config['window'].get('hide_hostname', False) and not profile_in_places:
+            hostname_label = Gtk.Label()
+            if use_gtk_theme:
+                hostname_label.set_markup(f' {hostname}')
+            else:
+                hostname_label.set_markup(f'<span color="{self.config["colors"]["text_header_hostname"]}"> {hostname}</span>')
+            hostname_label.override_font(header_font_description)
+            hostname_label.set_halign(gtk_align)
+            hostname_label.set_ellipsize(3)
+            hostname_label.set_max_width_chars(30)
+            system_info_box.pack_start(hostname_label, False, False, 0)
+        
+        header_box.pack_start(system_info_box, True, True, 0)
+        return header_box   
             
     def create_quick_access_buttons(self):
         """Crear botones de acceso rápido con nerd fonts y rutas localizadas"""
@@ -1379,6 +1452,255 @@ class ArcMenuLauncher(Gtk.Window):
         container.pack_start(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), False, False, 0)
     
         return container
+        
+    def create_places_sidebar(self):
+        """Crear columna de lugares completa: Perfil -> Hostname -> System Places -> Favoritos"""
+        places_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+        places_box.set_halign(Gtk.Align.CENTER)
+        places_box.set_margin_top(1)
+        places_box.set_margin_bottom(5)
+        places_box.set_margin_start(5)
+        places_box.set_margin_end(5)
+        
+        # 1. SECCIÓN DE PERFIL Y HOSTNAME
+        if self.config['window'].get('profile_in_places', False):
+            profile_section = self.create_profile_section()
+            places_box.pack_start(profile_section, False, False, 5)
+            
+            # ¡NO agregamos hostname aquí porque ya está en create_profile_section!
+            # El hostname ya está incluido dentro de create_profile_section()
+            
+            places_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 5)
+        
+        # 2. LUGARES DEL SISTEMA (Home, Downloads, etc.)
+        system_places = [
+            ('user-home', TR.get('Home', 'Home'), '~'),
+            ('folder-download', TR.get('DownloadsDir', 'Downloads'), f"~/{TR.get('DownloadsDir', 'Downloads')}"),
+            ('folder-music', TR.get('MusicDir', 'Music'), f"~/{TR.get('MusicDir', 'Music')}"),
+            ('folder-documents', TR.get('DocumentsDir', 'Documents'), f"~/{TR.get('DocumentsDir', 'Documents')}"),
+            ('folder-videos', TR.get('VideosDir', 'Videos'), f"~/{TR.get('VideosDir', 'Videos')}"),
+        ]
+        
+        # Fuente para los textos
+        font_desc = Pango.FontDescription.from_string(self.config['font'].get('family_categories', 'Sans'))
+        font_desc.set_size(self.config['font'].get('size_categories', 12000))
+
+        for icon_name, label, path in system_places:
+            btn = Gtk.Button()
+            btn.set_relief(Gtk.ReliefStyle.NONE)
+            btn.get_style_context().add_class('social-button')
+            btn.set_size_request(40, -1)
+            
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+            hbox.set_halign(Gtk.Align.START)
+            hbox.set_margin_start(5)
+            
+            # Icono de sistema (24px)
+            icon_image = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.DND)
+            icon_image.set_pixel_size(24)
+            
+            # Texto
+            text_label = Gtk.Label(label=label)
+            text_label.set_halign(Gtk.Align.START)
+            text_label.override_font(font_desc)
+            
+            hbox.pack_start(icon_image, False, False, 0)
+            hbox.pack_start(text_label, True, True, 0)
+            
+            btn.add(hbox)
+            btn.connect("clicked", lambda b, p=path: open_directory(p))
+            places_box.pack_start(btn, False, False, 0)
+
+# 3. SEPARADOR Y FAVORITOS
+        places_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 5)
+        
+        # Solo mostrar favoritos si NO están ocultos
+        if not self.config['window'].get('hide_favorites', False):
+            favorites = self.get_favorites()
+            if favorites:
+                for fav in favorites:
+                    # Crear estructura de datos consistente
+                    fav_info = {
+                        'Name': fav.get('name', 'App'),
+                        'Exec': fav.get('exec', ''),
+                        'Icon': fav.get('icon', 'star'),
+                        'Comment': fav.get('name', 'App'),
+                        'Terminal': False,
+                        'Categories': []
+                    }
+                    
+                    btn = Gtk.Button()
+                    btn.set_relief(Gtk.ReliefStyle.NONE)
+                    btn.get_style_context().add_class('social-button')
+                    btn.set_size_request(40, -1)
+                    
+                    hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+                    hbox.set_halign(Gtk.Align.START)
+                    hbox.set_margin_start(5)
+                    
+                    # Carga de icono
+                    icon_name = fav_info.get("Icon", "star")
+                    if os.path.isabs(icon_name) and os.path.exists(icon_name):
+                        try:
+                            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_name, 24, 24)
+                            fav_icon = Gtk.Image.new_from_pixbuf(pixbuf)
+                        except:
+                            fav_icon = Gtk.Image.new_from_icon_name("application-x-executable", Gtk.IconSize.DND)
+                    else:
+                        fav_icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.DND)
+                    
+                    fav_icon.set_pixel_size(24)
+                    
+                    fav_label = Gtk.Label(label=fav_info.get("Name", "App"))
+                    fav_label.set_halign(Gtk.Align.START)
+                    fav_label.override_font(font_desc)
+                    
+                    hbox.pack_start(fav_icon, False, False, 0)
+                    hbox.pack_start(fav_label, True, True, 0)
+                    btn.add(hbox)
+                    
+# Capturar comando y nombre directamente para evitar problemas de closure
+                    btn.connect("clicked", lambda b, cmd=fav_info['Exec'], name=fav_info['Name'], 
+                               icon=fav_info['Icon'], comment=fav_info['Comment']: 
+                               self.on_app_clicked(b, {'Name': name, 'Exec': cmd, 'Icon': icon, 'Comment': comment}))
+                    
+                    places_box.pack_start(btn, False, False, 0)
+        
+        # Scroll automático
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scrolled.add(places_box)
+        
+        return scrolled
+                
+    def safe_execute(self, command):
+            """Busca el comando real dentro del .desktop y lo ejecuta"""
+            try:
+                import re
+                clean_cmd = re.sub(r'\s+%\w', '', command).replace('gtk-launch ', '').strip()
+    
+                if clean_cmd.endswith(".desktop"):
+                    paths = ["/usr/share/applications/", "/usr/local/share/applications/", "/root/.local/share/applications/"]
+                    for p in paths:
+                        full_path = os.path.join(p, clean_cmd)
+                        if os.path.exists(full_path):
+                            with open(full_path, 'r') as f:
+                                for line in f:
+                                    if line.startswith("Exec="):
+                                        clean_cmd = line.replace("Exec=", "").split('%')[0].strip()
+                                        clean_cmd = clean_cmd.replace('"', '').replace("'", "")
+                                        break
+                            break
+    
+                subprocess.Popen(clean_cmd, shell=True, start_new_session=True,
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                self.hide() # En tu clase 'self' es la ventana
+            except Exception as e:
+                print(f"Error: {e}")
+            
+    def create_profile_section(self):
+        """Crear sección de perfil compacta para la columna de Places"""
+        profile_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+        profile_box.set_halign(Gtk.Align.CENTER)
+        
+        # Botón de perfil
+        profile_button = Gtk.Button()
+        profile_button.set_relief(Gtk.ReliefStyle.NONE)
+        profile_button.get_style_context().add_class('profile-button')
+        
+        if self.config['window'].get('profile_pic_shape', 'square') == 'circular':
+            profile_button.get_style_context().add_class('profile-circular-style')
+        
+        self.profile_image = Gtk.Image()
+        profile_button.add(self.profile_image)
+        self.profile_image.set_halign(Gtk.Align.CENTER)
+        self.profile_image.set_valign(Gtk.Align.CENTER)
+        
+        def load_profile_image():
+            profile_pic_path = self.config['paths']['profile_pic']
+            profile_pic_size = self.config['window'].get('profile_pic_size', 64)
+            profile_pic_shape = self.config['window'].get('profile_pic_shape', 'square')
+            
+            pixbuf = None
+    
+            if profile_pic_path and os.path.exists(profile_pic_path):
+                try:
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                        profile_pic_path, profile_pic_size, profile_pic_size, True
+                    )
+                except Exception as e:
+                    print(f"Error cargando .face: {e}")
+    
+            if pixbuf is None:
+                icon_names = ["user-info", "avatar-default", "user-available", "system-users"]
+                theme = Gtk.IconTheme.get_default()
+                
+                for name in icon_names:
+                    if theme.has_icon(name):
+                        try:
+                            pixbuf = theme.load_icon(name, profile_pic_size, Gtk.IconLookupFlags.FORCE_SIZE)
+                            break
+                        except:
+                            continue
+    
+            if pixbuf:
+                if profile_pic_shape == 'circular':
+                    pixbuf = apply_circular_mask(pixbuf)
+                self.profile_image.set_from_pixbuf(pixbuf)
+            else:
+                self.profile_image.set_from_icon_name("image-missing", Gtk.IconSize.DIALOG)
+        
+        load_profile_image()
+    
+        def on_profile_clicked(button):
+            profile_manager_path = self.config['paths'].get('profile_manager', "")
+            if profile_manager_path:
+                try:
+                    GLib.timeout_add(100, lambda: Gtk.main_quit())
+                    if os.access(profile_manager_path, os.X_OK):
+                        subprocess.Popen([profile_manager_path])
+                    else:
+                        subprocess.Popen(["python3", profile_manager_path])
+                except Exception as e:
+                    print(f"Error: {e}")
+            else:
+                print("Profile Manager no configurado por el usuario.")
+        
+        profile_button.set_tooltip_text(TR["Select avatar"])
+        profile_button.connect("clicked", on_profile_clicked)
+        profile_box.pack_start(profile_button, False, False, 0)
+        
+        # Nombre de usuario (hostname) - SOLO si no está oculto en la configuración
+        if not self.config['window'].get('hide_hostname', False):
+            hostname = self.get_hostname()
+            username_label = Gtk.Label(label=hostname)
+            username_label.set_halign(Gtk.Align.CENTER)
+            
+            font_description = Pango.FontDescription.from_string(self.config['font']['family'])
+            font_description.set_size(self.config['font']['size_header'])
+            username_label.override_font(font_description)
+            
+            use_gtk_theme = self.config['colors'].get('use_gtk_theme', False)
+            if not use_gtk_theme:
+                username_label.set_markup(f'<span color="{self.config["colors"]["text_header_os"]}"><b>{hostname}</b></span>')
+            else:
+                username_label.set_markup(f'<b>{hostname}</b>')
+            
+            profile_box.pack_start(username_label, False, False, 0)
+        
+        # Monitor de cambios en el archivo de perfil
+        profile_pic_path = self.config['paths']['profile_pic']
+        if profile_pic_path and os.path.exists(profile_pic_path):
+            profile_file = Gio.File.new_for_path(profile_pic_path)
+            monitor = profile_file.monitor_file(Gio.FileMonitorFlags.NONE, None)
+            
+            def on_file_changed(monitor, file, other_file, event_type):
+                if event_type in (Gio.FileMonitorEvent.CHANGED, Gio.FileMonitorEvent.CREATED):
+                    GLib.idle_add(load_profile_image)
+            
+            monitor.connect("changed", on_file_changed)
+        
+        return profile_box      
     
     def open_url(self, url):
         """Abrir URL en el navegador predeterminado"""
@@ -1853,18 +2175,79 @@ class ArcMenuLauncher(Gtk.Window):
             pass
     
         return False
+        
+    def load_favorites_data(self):
+        """Lee los favoritos del archivo JSON"""
+        favs_list = []
+        print(f"DEBUG: Buscando archivo de config: {CONFIG_FILE}")
+        
+        if os.path.exists(CONFIG_FILE):
+            try:
+                with open(CONFIG_FILE, 'r') as f:
+                    config = json.load(f)
+                    print(f"DEBUG: Config cargada, favoritos: {config.get('favorites', [])}")
+                    
+                    for fav in config.get('favorites', []):
+                        fav_item = {
+                            "Name": fav.get('name', 'Fav'),
+                            "Exec": fav.get('exec', ''),
+                            "Icon": fav.get('icon', 'star'),
+                            "Comment": fav.get('name', 'Fav'),
+                            "Terminal": False,
+                            "Categories": []
+                        }
+                        print(f"DEBUG: Favorito cargado: {fav_item['Name']} - {fav_item['Exec']}")
+                        favs_list.append(fav_item)
+            except Exception as e:
+                print(f"Error en favoritos: {e}")
+        else:
+            print(f"ERROR: Archivo de configuración no existe: {CONFIG_FILE}")
+            
+        return favs_list
+    
+    def get_favorites(self):
+            """Lee los favoritos reales del archivo JSON"""
+            if os.path.exists(CONFIG_FILE):
+                try:
+                    with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                        config = json.load(f)
+                        # Retornamos la lista de favoritos tal cual está en el JSON
+                        return config.get('favorites', [])
+                except Exception as e:
+                    print(f"Error cargando favoritos: {e}")
+            return []              
     
     def show_all_applications(self):
-        """Show all applications with lazy loading"""
-        if not self.apps_flowbox:
-            return
-        
-        self.current_category = "All"
-        
-        for child in self.apps_flowbox.get_children():
-            child.destroy()
-        
-        GLib.idle_add(self.load_applications_batch, list(self.applications.items()), 0)
+            """Muestra favoritos con sus nombres reales y luego el resto de apps"""
+            if not self.apps_flowbox:
+                return
+            
+            self.current_category = "All"
+            
+            # Limpiar iconos actuales
+            for child in self.apps_flowbox.get_children():
+                child.destroy()
+            
+            # --- CARGAR FAVORITOS ---
+            favorites = self.get_favorites()
+            for fav in favorites:
+                # IMPORTANTE: Mapear exactamente las llaves del JSON a lo que el menú usa
+                fav_info = {
+                    "Name": fav.get('name', 'Sin nombre'), # Toma el nombre del configurador
+                    "Exec": fav.get('exec', ''),           # Toma el comando
+                    "Icon": fav.get('icon', 'exec'),       # Toma el icono
+                    "is_favorite": True
+                }
+                
+                # Llamamos a tu función de crear item con el nombre real
+                item = self.create_app_item(fav_info["Name"], fav_info)
+                if item:
+                    self.apps_flowbox.add(item)
+            
+            # --- CARGAR EL RESTO DE APPS ---
+            GLib.idle_add(self.load_applications_batch, list(self.applications.items()), 0)
+            
+            self.apps_flowbox.show_all()
     
     def show_category_applications(self, category):
         """Show applications from specific category with lazy loading"""
@@ -2036,37 +2419,153 @@ class ArcMenuLauncher(Gtk.Window):
             print("Error: 'xdg-open' not found. Please make sure you have a default browser configured.")
         except Exception as e:
             print(f"Failed to launch browser: {e}")
-
+    
     def on_app_clicked(self, button, app_info):
-        """Handle application launch"""
+        """Handle application launch - versión mejorada"""
+        try:
+            GLib.timeout_add(50, lambda: Gtk.main_quit())
+            
+            command = app_info.get('Exec', '')
+            name = app_info.get('Name', 'Unknown')
+            
+            if not command:
+                print(f"❌ ERROR: Comando vacío para {name}")
+                return
+            
+            print(f"🔍 DEBUG: Lanzando {name}")
+            print(f"🔍 DEBUG: Comando original: {command}")
+            
+            # Si el comando usa gtk-launch, procesarlo especialmente
+            if command.startswith('gtk-launch '):
+                desktop_file = command.replace('gtk-launch ', '').strip()
+                print(f"🔍 DEBUG: Detectado gtk-launch con archivo: {desktop_file}")
+                
+                # Buscar el archivo .desktop en las rutas comunes
+                search_paths = [
+                    '/usr/share/applications/',
+                    '/usr/local/share/applications/',
+                    os.path.expanduser('~/.local/share/applications/')
+                ]
+                
+                real_command = None
+                for path in search_paths:
+                    desktop_path = os.path.join(path, desktop_file)
+                    if os.path.exists(desktop_path):
+                        print(f"✅ DEBUG: Encontrado .desktop en: {desktop_path}")
+                        # Leer el comando real del archivo .desktop
+                        try:
+                            with open(desktop_path, 'r') as f:
+                                for line in f:
+                                    if line.startswith('Exec='):
+                                        real_command = line.replace('Exec=', '').strip()
+                                        # Limpiar parámetros como %f, %u, etc.
+                                        import re
+                                        real_command = re.sub(r'\s+%\w+', '', real_command)
+                                        print(f"✅ DEBUG: Comando real extraído: {real_command}")
+                                        break
+                        except Exception as e:
+                            print(f"⚠️ DEBUG: Error leyendo .desktop: {e}")
+                        break
+                
+                if real_command:
+                    command = real_command
+                else:
+                    print(f"⚠️ DEBUG: No se encontró el .desktop, intentando con gtk-launch directo")
+            
+            print(f"▶️ Ejecutando: {command}")
+            
+            # Ejecutar el comando
+            subprocess.Popen(command, 
+                            shell=True,
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                            start_new_session=True)
+            
+            print(f"✅ Lanzado: {name}")
+            
+        except Exception as e:
+            print(f"❌ Error lanzando {name}: {e}")
+            import traceback
+            traceback.print_exc()            
+            
+    def launch_application(self, app_info):
+        """Función centralizada para lanzar cualquier aplicación"""
         try:
             GLib.timeout_add(50, lambda: Gtk.main_quit())
             
             command = app_info['Exec']
-            try:
-                cmd_parts = shlex.split(command)
-            except ValueError:
-                cmd_parts = command.split()
-
-            cleaned_parts = [part for part in cmd_parts if not any(part.startswith(code) for code in ['%f', '%F', '%u', '%U', '%i', '%c'])]
-
-            if not cleaned_parts:
-                print(f"No executable command found for {app_info['Name']}")
+            print(f"DEBUG: Comando original: {command}")
+            
+            # Caso 1: Si el comando está vacío
+            if not command or not command.strip():
+                print(f"ERROR: Comando vacío para {app_info['Name']}")
                 return
-
-            if app_info.get('Terminal', False):
-                subprocess.Popen(['lxterminal', '-e'] + cleaned_parts,
-                                 stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL)
+            
+            # Limpiar parámetros de .desktop
+            import re
+            clean_command = re.sub(r'\s+%\w', '', command)
+            clean_command = clean_command.strip()
+            
+            print(f"DEBUG: Comando limpio: {clean_command}")
+            
+            # Dividir el comando
+            try:
+                cmd_parts = shlex.split(clean_command)
+            except ValueError:
+                cmd_parts = clean_command.split()
+            
+            if not cmd_parts:
+                print(f"ERROR: No se pudo dividir el comando")
+                return
+            
+            print(f"DEBUG: Partes del comando: {cmd_parts}")
+            
+            # Verificar si es un comando especial (gtk-launch, xdg-open, etc)
+            special_commands = ['gtk-launch', 'xdg-open', 'python', 'python3', 'sh', 'bash']
+            
+            # Si es un comando especial, mantenerlo completo
+            if cmd_parts[0] in special_commands:
+                print(f"DEBUG: Comando especial detectado: {cmd_parts[0]}")
+                # No buscar en PATH, ejecutar directamente
+                final_cmd = cmd_parts
             else:
-                subprocess.Popen(cleaned_parts,
-                                 stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL)
-
-            print(f"Launching: {app_info['Name']} ({' '.join(cleaned_parts)})")
-
+                # Para comandos normales, verificar si existen
+                executable = cmd_parts[0]
+                
+                if os.path.isabs(executable):
+                    # Es ruta absoluta
+                    if not os.path.exists(executable):
+                        print(f"ERROR: Ejecutable no existe: {executable}")
+                        return
+                else:
+                    # Buscar en PATH
+                    found = False
+                    for path_dir in os.environ.get('PATH', '').split(':'):
+                        full_path = os.path.join(path_dir, executable)
+                        if os.path.exists(full_path) and os.access(full_path, os.X_OK):
+                            cmd_parts[0] = full_path
+                            found = True
+                            break
+                    
+                    if not found:
+                        print(f"DEBUG: '{executable}' no encontrado en PATH, intentando igual")
+                
+                final_cmd = cmd_parts
+            
+            print(f"DEBUG: Comando final: {final_cmd}")
+            
+            # Ejecutar
+            subprocess.Popen(final_cmd,
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                            start_new_session=True)
+            
+            print(f"✅ Aplicación lanzada: {app_info['Name']}")
+            
         except Exception as e:
-            print(f"Error launching {app_info.get('Name', 'Unknown')}: {e}")
+            print(f"❌ Error: {e}")
+            import traceback
+            traceback.print_exc()                 
             
     # Función que faltaba
     def on_config_clicked(self, button):

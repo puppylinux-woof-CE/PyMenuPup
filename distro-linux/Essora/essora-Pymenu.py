@@ -578,7 +578,7 @@ class ArcMenuLauncher(Gtk.Window):
             }
             .menu-window {
                 background-color: @theme_bg_color;
-                border-radius: 14px;
+                border-radius: 0px;
                 box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
                 border: 1px solid @theme_unfocused_fg_color;
                 padding: 5px 10px 10px 10px;

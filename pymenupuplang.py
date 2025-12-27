@@ -25,7 +25,7 @@ class TranslationManager:
         "/usr/share/locale/pymenupup",                      # Sistema
     ]
     
-    # Traducciones por defecto en inglés (fallback)
+# Traducciones por defecto en inglés (fallback)
     DEFAULT_TRANSLATIONS = {
         'PyMenuPup Configurator': 'PyMenuPup Configurator',
         'Window': 'Window',
@@ -138,7 +138,42 @@ class TranslationManager:
         'Using default config.': 'Using default config.',
         'Config saved (without closing).': 'Config saved (without closing).',
         'An error occurred:': 'An error occurred:',
-        'PyMenu Configurator': 'PyMenu Configurator'
+        'PyMenu Configurator': 'PyMenu Configurator',
+        
+        # AÑADIDAS LAS NUEVAS TRADUCCIONES:
+        'Favorites': 'Favorites',
+        'Add favorite': 'Add favorite',
+        'No favorites yet. Click here to add one.': 'No favorites yet. Click here to add one.',
+        'Add Favorite': 'Add Favorite',
+        'Add': 'Add',
+        'Select an application:': 'Select an application:',
+        'Search applications...': 'Search applications...',
+        'Application': 'Application',
+        'Select a directory:': 'Select a directory:',
+        'Path to directory': 'Path to directory',
+        'Browse...': 'Browse...',
+        'Directory': 'Directory',
+        'Name:': 'Name:',
+        'Favorite name': 'Favorite name',
+        'Command:': 'Command:',
+        'Command to execute': 'Command to execute',
+        'Icon (optional):': 'Icon (optional):',
+        'Icon name or path': 'Icon name or path',
+        'Browse icon': 'Browse icon',
+        'Open File Manager': 'Open File Manager',
+        'Command': 'Command',
+        'Select Directory': 'Select Directory',
+        'Select Icon': 'Select Icon',
+        'Image files': 'Image files',
+        'All files': 'All files',
+        
+        # NUEVAS OPCIONES DEL MENÚ
+        'Hide places sidebar:': 'Hide places sidebar:',
+        '(Hides both places and favorites)': '(Hides both places and favorites)',
+        'Hide favorites only:': 'Hide favorites only:',
+        '(Show places but hide favorites)': '(Show places but hide favorites)',
+        'Show profile in places sidebar:': 'Show profile in places sidebar:',
+        '(Instead of header)': '(Instead of header)',
     }
     
     def __init__(self):
