@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 """
-Sistema de traducción simple para Esora Kit
-Archivo: /usr/local/bin/pymenuessoralang.py
+Sistema de traducción simple para Essora Kit / PyMenuPup
+Archivo: /usr/local/bin/pymenupuplang.py
 
 Los archivos .lang se buscan en:
-1. ~/.config/essora-kit/locale/
-2. /usr/local/essora-kit/locale/
-3. /usr/share/locale/essora-kit/
-
-IMPORTANTE: El archivo debe llamarse 'pymenuessoralang.py' (sin guion bajo)
-para evitar problemas de importación en Python.
+1. ~/.config/essora-kit/locale/ (usuario)
+2. /usr/local/essora-kit/locale/ (instalación local)
+3. /usr/share/locale/essora-kit/ (sistema)
 """
 
 import os
@@ -21,13 +18,13 @@ class TranslationManager:
     # Rutas donde buscar archivos de traducción (en orden de prioridad)
     LOCALE_PATHS = [
         os.path.expanduser("~/.config/essora-kit/locale"),  # Usuario local (mayor prioridad)
-        "/usr/local/essora-kit/locale",                      # Instalación Esora
-        "/usr/share/locale/essora-kit",                      # Sistema
+        "/usr/local/essora-kit/locale",                     # Instalación de Essora
+        "/usr/share/locale/essora-kit",                     # Sistema (opcional)
     ]
-    
-    # Traducciones por defecto en inglés (fallback)
+        
+# Traducciones por defecto en inglés (fallback)
     DEFAULT_TRANSLATIONS = {
-        'PyMenu Configurator': 'PyMenu Configurator',
+        'PyMenuPup Configurator': 'PyMenuPup Configurator',
         'Window': 'Window',
         'Colors': 'Colors',
         'Font': 'Font',
@@ -48,8 +45,11 @@ class TranslationManager:
         'Show window frame:': 'Show window frame:',
         '(No transparency)': '(No transparency)',
         'Hide header:': 'Hide header:',
-        'Hide profile pic:': 'Hide profile pic:',
+        'Hide profile picture:': 'Hide profile picture:',
+        'Hide quick access:': 'Hide quick access:',
+        'Hide social networks:': 'Hide social networks:',
         'Hide categories text:': 'Hide categories text:',
+        'Hide app names:': 'Hide app names:',
         'Horizontal alignment:': 'Horizontal alignment:',
         'Search bar position:': 'Search bar position:',
         'top': 'Top',
@@ -108,7 +108,99 @@ class TranslationManager:
         'Help': 'Help',
         'Rectify': 'Rectify',
         'Shutdown': 'Shutdown',
-        'Leave': 'Leave'
+        'Leave': 'Leave',
+        'Cancel': 'Cancel',
+        'Select': 'Select',
+        'Select profile picture': 'Select profile picture',
+        'Select profile manager': 'Select profile manager',
+        'Select shutdown command': 'Select shutdown command',
+        'Select JWM config': 'Select JWM config',
+        'Select Tint2 config': 'Select Tint2 config',
+        'Search engine:': 'Search engine:',
+        'Loading translations from:': 'Loading translations from:',
+        'Category map built with': 'Category map built with',
+        'entries': 'entries',
+        'Window Manager detected:': 'Window Manager detected:',
+        'Using user config': 'Using user config',
+        'Automatically using Tint2 config': 'Automatically using Tint2 config',
+        'Tray config detected from': 'Tray config detected from:',
+        'Now monitoring JWM file for changes:': 'Now monitoring JWM file for changes:',
+        'Folder created:': 'Folder created:',
+        'Error creating folder': 'Error creating folder',
+        'Mouse entered applications area': 'Mouse entered applications area',
+        'Using GTK theme colors': 'Using GTK theme colors',
+        'ERROR: Could not load pymenupuplang.py': 'ERROR: Could not load pymenupuplang.py',
+        'Config file not found. Creating default config.': 'Config file not found. Creating default config.',
+        'Error loading config file:': 'Error loading config file:',
+        'Using default config.': 'Using default config.',
+        'Config saved (without closing).': 'Config saved (without closing).',
+        'An error occurred:': 'An error occurred:',
+        'PyMenu Configurator': 'PyMenu Configurator',
+        
+        # AÑADIDAS LAS NUEVAS TRADUCCIONES:
+        'Favorites': 'Favorites',
+        'Add favorite': 'Add favorite',
+        'No favorites yet. Click here to add one.': 'No favorites yet. Click here to add one.',
+        'Add Favorite': 'Add Favorite',
+        'Add': 'Add',
+        'Select an application:': 'Select an application:',
+        'Search applications...': 'Search applications...',
+        'Application': 'Application',
+        'Select a directory:': 'Select a directory:',
+        'Path to directory': 'Path to directory',
+        'Browse...': 'Browse...',
+        'Directory': 'Directory',
+        'Name:': 'Name:',
+        'Favorite name': 'Favorite name',
+        'Command:': 'Command:',
+        'Command to execute': 'Command to execute',
+        'Icon (optional):': 'Icon (optional):',
+        'Icon name or path': 'Icon name or path',
+        'Browse icon': 'Browse icon',
+        'Open File Manager': 'Open File Manager',
+        'Command': 'Command',
+        'Select Directory': 'Select Directory',
+        'Select Icon': 'Select Icon',
+        'Image files': 'Image files',
+        'All files': 'All files',
+        
+        # NUEVAS OPCIONES DEL MENÚ
+        'Hide places sidebar:': 'Hide places sidebar:',
+        '(Hides both places and favorites)': '(Hides both places and favorites)',
+        'Hide favorites only:': 'Hide favorites only:',
+        '(Show places but hide favorites)': '(Show places but hide favorites)',
+        'Show profile in places sidebar:': 'Show profile in places sidebar:',
+        '(Instead of header)': '(Instead of header)',
+        'Home': 'Home',
+        'Downloads': 'Downloads',
+        'Music': 'Music',
+        'Documents': 'Documents',
+        'Pictures': 'Pictures',
+        'Videos': 'Videos',
+        'No favorites added': 'No favorites added',
+        'Select avatar': 'Select avatar',
+        'Pymenu config': 'Pymenu config',
+        'Run': 'Run',
+        'Create desktop shortcut': 'Create desktop shortcut',
+        'Shutdown': 'Shutdown',
+        'Search in the web': 'Search in the web',
+        'Search applications...': 'Search applications...',
+        
+        # AGREGAR ESTAS NUEVAS CLAVES DE ESSORA:
+        'Search applications...': 'Search applications...',
+        'Shutdown': 'Shutdown',
+        'Search in the web': 'Search in the web',
+        'Pymenu config': 'Pymenu config',
+        'Select avatar': 'Select avatar',
+        'Run': 'Run',
+        'Create desktop shortcut': 'Create desktop shortcut',
+        
+        # Categorías adicionales de Essora
+        'Favorites': 'Favorites',
+        'Accessories': 'Accessories',
+        'Office': 'Office',
+        'Applications': 'Applications',
+        'Graphics': 'Graphics',        
     }
     
     def __init__(self):
@@ -120,7 +212,7 @@ class TranslationManager:
     def _build_category_map(self):
         """
         Construye un mapa de categorías traducidas a sus nombres estándar en inglés.
-        Esto permite que el sistema reconozca categorías en cualquier idioma.
+        Esto permite que el sistema reconozca categorías del JWM en cualquier idioma.
         """
         # Categorías estándar que necesitan mapeo
         standard_categories = [
@@ -169,7 +261,7 @@ class TranslationManager:
         try:
             sys_locale = locale.getlocale()
             if sys_locale[0]:
-                # Obtiene código completo (ej: es_SV -> es-SV)
+                # Obtiene código completo (ej: es_MX -> es-MX)
                 lang_code = sys_locale[0].replace('_', '-')
                 return lang_code
         except:
@@ -178,7 +270,7 @@ class TranslationManager:
     
     def _find_lang_file(self, lang_code):
         """Busca el archivo .lang en las rutas configuradas"""
-        # Primero intenta con el código completo (ej: es-SV.lang)
+        # Primero intenta con el código completo (ej: es-MX.lang)
         for base_path in self.LOCALE_PATHS:
             full_path = os.path.join(base_path, f"{lang_code}.lang")
             if os.path.exists(full_path):
@@ -258,4 +350,4 @@ class TranslationManager:
 if __name__ == "__main__":
     TR = TranslationManager()
     print(f"Idioma detectado: {TR.current_lang}")
-    print(f"Ejemplo: {TR['PyMenu Configurator']}")
+    print(f"Ejemplo: {TR['PyMenuPup Configurator']}")
