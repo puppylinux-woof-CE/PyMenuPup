@@ -62,7 +62,9 @@ class ConfigManager:
                 "hide_hostname": False,
                 "hide_places": False,           
                 "hide_favorites": False,       
-                "profile_in_places": False     
+                "profile_in_places": False,
+                "search_bar_position": "bottom",  
+                "search_bar_container": "window"     
             },
             "font": {
                 "family": "Terminess Nerd Font Propo Bold 16",
@@ -368,6 +370,16 @@ class ConfigWindow(Gtk.Window):
         searchbar_combo.set_active_id(current_searchbar)
         searchbar_combo.connect("changed", self.on_combobox_changed, 'window', 'search_bar_position')
         grid.attach(searchbar_combo, 1, 19, 1, 1)
+        
+        # Control para search_bar_container (añadir después de la posición)
+        grid.attach(Gtk.Label(label=TR['Search bar container:']), 0, 20, 1, 1)
+        container_combo = Gtk.ComboBoxText()
+        container_combo.append("window", TR['In window'])
+        container_combo.append("apps_column", TR['In applications column'])
+        current_container = self.config['window'].get('search_bar_container', 'window')
+        container_combo.set_active_id(current_container)
+        container_combo.connect("changed", self.on_combobox_changed, 'window', 'search_bar_container')
+        grid.attach(container_combo, 1, 20, 1, 1)        
     
         # Envolver el grid en un ScrolledWindow
         scrolled_window = Gtk.ScrolledWindow()

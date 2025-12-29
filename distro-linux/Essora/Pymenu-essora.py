@@ -121,7 +121,9 @@ class ConfigManager:
                 "hide_hostname": False,
                 "hide_places": False,           
                 "hide_favorites": False,       
-                "profile_in_places": False     
+                "profile_in_places": False,
+                "search_bar_position": "bottom",
+                "search_bar_container": "window"    
             },
             "font": {
                 "family": "Terminess Nerd Font Propo Bold 16",
@@ -911,7 +913,7 @@ class ArcMenuLauncher(Gtk.Window):
         main_box.get_style_context().add_class('menu-window')
         self.add(main_box)
         top_spacer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        top_spacer.set_size_request(-1, 2)  # 20 píxeles de altura
+        top_spacer.set_size_request(-1, 2)
         main_box.pack_start(top_spacer, False, False, 0)
     
         if not self.config['window'].get('hide_header', False):
@@ -922,28 +924,59 @@ class ArcMenuLauncher(Gtk.Window):
         content_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         main_box.pack_start(content_box, True, True, 0)
     
-        # AQUÍ ESTÁ LA MODIFICACIÓN: Agregar columna de Places
-        # Columna 1: Places (Lugares) - nueva columna
+        # Columna 1: Places
         places_sidebar = self.create_places_sidebar()
         content_box.pack_start(places_sidebar, False, False, 0)
         content_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), False, False, 0)
         
-        # Columna 2: Categorías (existente)
+        # Columna 2: Categorías
         content_box.pack_start(self.create_categories_sidebar(), False, False, 0)
         content_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), False, False, 0)
         
-        # Columna 3: Aplicaciones (existente)
-        content_box.pack_start(self.create_applications_area(), True, True, 0)
-    
-    
-        # --- INICIO: Creación de la barra de búsqueda y botones ---
-    
-        # Creamos la caja de búsqueda y botones (que el código anterior llamaba bottom_box)
-        search_and_buttons_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        search_and_buttons_box.set_margin_top(4)
-        search_and_buttons_box.set_margin_bottom(4)
-        search_and_buttons_box.set_margin_start(4)
-        search_and_buttons_box.set_margin_end(4)
+        # Columna 3: Aplicaciones
+        apps_area = self.create_applications_area()
+        content_box.pack_start(apps_area, True, True, 0)
+        
+        # === NUEVA LÓGICA: Verificar CONTENEDOR de la barra de búsqueda ===
+        search_container = self.config['window'].get('search_bar_container', 'window')
+        
+        if search_container == 'apps_column':
+            # La barra ya está integrada en create_applications_area()
+            pass
+        else:
+            # Comportamiento original: barra en la ventana principal
+            search_position = self.config['window'].get('search_bar_position', 'bottom')
+            search_and_buttons_box = self.create_search_and_buttons_box()
+            
+            if search_position == 'top':
+                main_box_children = main_box.get_children()
+                insert_position = 0
+                
+                for i, child in enumerate(main_box_children):
+                    if child == content_box:
+                        insert_position = i
+                        break
+                
+                main_box.pack_start(search_and_buttons_box, False, False, 0)
+                main_box.reorder_child(main_box.get_children()[-1], insert_position)
+                
+                separator_top = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+                main_box.pack_start(separator_top, False, False, 0)
+                main_box.reorder_child(main_box.get_children()[-1], insert_position + 1)
+            else:
+                main_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
+                main_box.pack_end(search_and_buttons_box, False, False, 0)
+        
+        self.show_all()
+        GLib.timeout_add(100, self.delayed_focus_grab)
+        
+    def create_search_and_buttons_box(self):
+        """Crea la caja con barra de búsqueda y botones de acción"""
+        bottom_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        bottom_box.set_margin_top(4)
+        bottom_box.set_margin_bottom(4)
+        bottom_box.set_margin_start(4)
+        bottom_box.set_margin_end(4)
     
         self.search_entry = Gtk.SearchEntry()
         self.search_entry.get_style_context().add_class('search-box')
@@ -952,12 +985,39 @@ class ArcMenuLauncher(Gtk.Window):
         self.search_entry.set_size_request(200, 10)
         self.search_entry.set_can_focus(True)
         self.search_entry.set_tooltip_text(TR['Search applications...'])
-        search_and_buttons_box.pack_start(self.search_entry, True, True, 0)
-    
-        # Nota: Usamos icon_size = self.config['window'].get('icon_size', 16) una sola vez si es posible
-        icon_size = self.config['window'].get('icon_size', 16)
+        bottom_box.pack_start(self.search_entry, True, True, 0)
         
-        # Botón de configuración
+        # ---- Botón de apagado ----
+        shutdown_button = Gtk.Button()
+        shutdown_button.get_style_context().add_class('action-button') 
+        shutdown_button.set_size_request(30, 5)
+        icon_path = self.find_icon_path("preferences-desktop-essora")
+        if icon_path:
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 20, 20)
+            shutdown_icon = Gtk.Image.new_from_pixbuf(pixbuf)
+        else:
+            shutdown_icon = Gtk.Image.new_from_icon_name("preferences-desktop-essora", Gtk.IconSize.SMALL_TOOLBAR)        
+        shutdown_button.add(shutdown_icon)
+        shutdown_button.set_tooltip_text(TR['Shutdown'])
+        shutdown_button.connect("clicked", self.on_shutdown_clicked)
+        bottom_box.pack_end(shutdown_button, False, False, 0)
+        
+        # ---- Botón de navegador ----
+        browser_button = Gtk.Button()
+        browser_button.get_style_context().add_class('action-button') 
+        browser_button.set_size_request(30, 5)
+        icon_path = self.find_icon_path("preferences-system-search-essora")
+        if icon_path:
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 20, 20)
+            browser_icon = Gtk.Image.new_from_pixbuf(pixbuf)
+        else:
+            browser_icon = Gtk.Image.new_from_icon_name("preferences-system-search-essora", Gtk.IconSize.SMALL_TOOLBAR)       
+        browser_button.add(browser_icon)
+        browser_button.set_tooltip_text(TR['Search in the web'])
+        browser_button.connect("clicked", self.on_browser_search_clicked)
+        bottom_box.pack_end(browser_button, False, False, 0)
+        
+        # ---- Botón de configuración ----
         config_button = Gtk.Button()
         config_button.get_style_context().add_class('action-button')
         config_button.set_size_request(30, 5)
@@ -967,77 +1027,13 @@ class ArcMenuLauncher(Gtk.Window):
             config_icon = Gtk.Image.new_from_pixbuf(pixbuf)
         else:
             config_icon = Gtk.Image.new_from_icon_name("preferences-system-essora", Gtk.IconSize.SMALL_TOOLBAR)
+        
         config_button.add(config_icon)
         config_button.set_tooltip_text(TR['Pymenu config'])
         config_button.connect("clicked", self.on_config_clicked)
-        search_and_buttons_box.pack_end(config_button, False, False, 0)
-    
-        # Nuevo botón de navegador
-        browser_button = Gtk.Button()
-        browser_button.get_style_context().add_class('action-button')
-        browser_button.set_size_request(30, 5)
-        icon_path = self.find_icon_path("preferences-system-search-essora")
-        if icon_path:
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 20, 20)
-            browser_icon = Gtk.Image.new_from_pixbuf(pixbuf)
-        else:
-            browser_icon = Gtk.Image.new_from_icon_name("preferences-system-search-essora", Gtk.IconSize.SMALL_TOOLBAR)
-        browser_button.add(browser_icon)
-        browser_button.set_tooltip_text(TR['Search in the web'])
-        browser_button.connect("clicked", self.on_browser_search_clicked)
-        search_and_buttons_box.pack_end(browser_button, False, False, 0)
-    
-        # Botón de apagado
-        shutdown_button = Gtk.Button()
-        shutdown_button.get_style_context().add_class('action-button')
-        shutdown_button.set_size_request(30, 5)
-        icon_path = self.find_icon_path("preferences-desktop-essora")
-        if icon_path:
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 20, 20)
-            shutdown_icon = Gtk.Image.new_from_pixbuf(pixbuf)
-        else:
-            shutdown_icon = Gtk.Image.new_from_icon_name("preferences-desktop-essora", Gtk.IconSize.SMALL_TOOLBAR)
-        shutdown_button.add(shutdown_icon)
-        shutdown_button.set_tooltip_text(TR['Shutdown'])
-        shutdown_button.connect("clicked", self.on_shutdown_clicked)
-        search_and_buttons_box.pack_end(shutdown_button, False, False, 0)
+        bottom_box.pack_end(config_button, False, False, 0)
         
-        # --- FIN: Creación de la barra de búsqueda y botones ---
-    
-        # === LÓGICA DE POSICIÓN DE LA BARRA DE BÚSQUEDA ===
-        search_position = self.config['window'].get('search_bar_position', 'bottom')
-        
-        if search_position == 'top':
-            # 1. Encontrar dónde insertar: justo antes de content_box
-            main_box_children = main_box.get_children()
-            insert_position = 0
-            
-            for i, child in enumerate(main_box_children):
-                if child == content_box:
-                    insert_position = i
-                    break
-            
-            # 2. Insertar la barra de búsqueda (search_and_buttons_box)
-            # pack_start la añade al final. Luego reorder_child la mueve.
-            main_box.pack_start(search_and_buttons_box, False, False, 0)
-            main_box.reorder_child(main_box.get_children()[-1], insert_position)
-            
-            # 3. Agregar separador después de la barra de búsqueda
-            separator_top = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-            main_box.pack_start(separator_top, False, False, 0)
-            main_box.reorder_child(main_box.get_children()[-1], insert_position + 1)
-    
-        else:
-            # Si está abajo ('bottom' o cualquier otro valor)
-            # 1. Agregar el separador que va ANTES de la barra de búsqueda
-            main_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
-            
-            # 2. Agregar la caja de búsqueda y botones al final
-            main_box.pack_end(search_and_buttons_box, False, False, 0)
-        
-        # [Finalización]
-        self.show_all()
-        GLib.timeout_add(100, self.delayed_focus_grab)
+        return bottom_box        
         
     def delayed_focus_grab(self):
         """Grab focus on search entry after a small delay to preserve placeholder visibility"""
@@ -1903,14 +1899,28 @@ class ArcMenuLauncher(Gtk.Window):
         return False
 
     def create_applications_area(self):
-        """Create applications display area"""
+        """Create applications display area with optional integrated search bar"""
+        # Contenedor principal vertical para apps + búsqueda opcional
+        main_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        
+        # Verificar si la búsqueda debe estar en esta columna
+        search_container = self.config['window'].get('search_bar_container', 'window')
+        search_position = self.config['window'].get('search_bar_position', 'bottom')
+        
+        # Si la búsqueda va arriba Y en esta columna, agregarla primero
+        if search_container == 'apps_column' and search_position == 'top':
+            search_and_buttons_box = self.create_search_and_buttons_box()
+            main_container.pack_start(search_and_buttons_box, False, False, 0)
+            main_container.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
+        
+        # Área de aplicaciones con scroll
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         
         self.apps_flowbox = Gtk.FlowBox()
         self.apps_flowbox.set_valign(Gtk.Align.START)
         self.apps_flowbox.set_max_children_per_line(30)
-        self.apps_flowbox.set_selection_mode(Gtk.SelectionMode.SINGLE)  # Cambiado a SINGLE
+        self.apps_flowbox.set_selection_mode(Gtk.SelectionMode.SINGLE)
         self.apps_flowbox.set_property("margin-left", 5)
         self.apps_flowbox.set_property("margin-right", 5)
         self.apps_flowbox.set_property("margin-top", 10)
@@ -1921,11 +1931,18 @@ class ArcMenuLauncher(Gtk.Window):
         apps_eventbox.add_events(Gdk.EventMask.ENTER_NOTIFY_MASK)
         apps_eventbox.connect("enter-notify-event", self.on_apps_area_enter)
         
-        # Conecta el manejador de teclas a la ventana del FlowBox
         self.apps_flowbox.connect("key-press-event", self.on_apps_key_press)
         
         scrolled.add(apps_eventbox)
+        main_container.pack_start(scrolled, True, True, 0)
         
+        # Si la búsqueda va abajo Y en esta columna, agregarla al final
+        if search_container == 'apps_column' and search_position == 'bottom':
+            main_container.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
+            search_and_buttons_box = self.create_search_and_buttons_box()
+            main_container.pack_start(search_and_buttons_box, False, False, 0)
+        
+        # Cargar primera categoría
         first_category = None
         preferred_order = ['Favorites', 'Desktop', 'System', 'Setup', 'Utility', 'Filesystem', 
                           'Graphic', 'Document', 'Business', 'Personal', 
@@ -1940,7 +1957,7 @@ class ArcMenuLauncher(Gtk.Window):
             self.current_category = first_category
             GLib.idle_add(self.show_category_applications, first_category)
         
-        return scrolled
+        return main_container
     
     def on_apps_area_enter(self, widget, event):
         """Handle mouse entering the applications area"""
