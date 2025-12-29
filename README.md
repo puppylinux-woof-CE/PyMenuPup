@@ -550,18 +550,34 @@ Or from the main menu, click on the configuration icon.
 ## File Structure
 ```
 PyMenuPup/
-├── pymenu-globicons.py      # Main menu
-├── pymenu-config.py          # GTK configurator
-├── pymenupuplang.py          # Translation system
-├── locale/
-│   ├── es.lang              # Spanish translation
-│   └── fr.lang              # French translation
-├── README.md                 # This file
-├── README-es.md              # Spanish version
-├── TECHNICAL.md              # Technical documentation (English)
-├── TECHNICAL-es.md           # Technical documentation (Spanish)
-├── LICENSE                   # GPL License
-└── screenshots/              # Screenshots (optional)
+├── README.md                  # Main readme (English)
+├── README-es.md               # Readme (Spanish)
+├── TECHNICAL.md               # Technical documentation (English)
+├── TECHNICAL-es.md            # Technical documentation (Spanish)
+├── pymenu-globicons.py        # Main menu
+├── pymenu-config.py           # GTK configurator
+├── pymenupuplang.py           # Translation system
+├── distro-linux/             # Distro-specific configurations
+│   ├── Essora/
+│   │   ├── Pymenu-essora.py
+│   │   ├── pymenu-config-essora.py
+│   │   └── pymenupuplang.py
+│   └── Trixiepup-Wayland/
+│       └── Pymenu-trixiewayland.py
+├── locale/                   # Translations
+│   ├── ar.lang                # Arabic
+│   ├── de.lang                # German
+│   ├── es.lang                # Spanish
+│   ├── fr.lang                # French
+│   ├── it.lang                # Italian
+│   ├── ja.lang                # Japanese
+│   ├── pt-BR.lang             # Portuguese (Brazil)
+│   ├── pt-PT.lang             # Portuguese (Portugal)
+│   ├── ru.lang                # Russian
+│   └── template.lang          # Base template
+└── screenshots/              # Screenshots
+├── config-tool.png
+└── main-menu.png
 ```
 
 ### Installation Paths

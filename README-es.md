@@ -547,18 +547,34 @@ O desde el menú principal, haz clic en el icono de configuración.
 ## Estructura de Archivos
 ```
 PyMenuPup/
-├── pymenu-globicons.py      # Menú principal
-├── pymenu-config.py          # Configurador GTK
-├── pymenupuplang.py          # Sistema de traducción
-├── locale/
-│   ├── es.lang              # Traducción español
-│   └── fr.lang              # Traducción francés
-├── README.md                 # Documentación en inglés
-├── README-es.md              # Este archivo
-├── TECHNICAL.md              # Documentación técnica (inglés)
-├── TECHNICAL-es.md           # Documentación técnica (español)
-├── LICENSE                   # Licencia GPL
-└── screenshots/              # Capturas de pantalla (opcional)
+├── README.md                  # Archivo principal (inglés)
+├── README-es.md               # Archivo principal (español)
+├── TECHNICAL.md               # Documentación técnica (inglés)
+├── TECHNICAL-es.md            # Documentación técnica (español)
+├── pymenu-globicons.py        # Menú principal
+├── pymenu-config.py           # Configurador GTK
+├── pymenupuplang.py           # Sistema de traducción
+├── distro-linux/             # Configuraciones específicas de cada distro
+│   ├── Essora/
+│   │   ├── Pymenu-essora.py
+│   │   ├── pymenu-config-essora.py
+│   │   └── pymenupuplang.py
+│   └── Trixiepup-Wayland/
+│       └── Pymenu-trixiewayland.py
+├── locale/                   # Traducciones
+│   ├── ar.lang                # Árabe
+│   ├── de.lang                # Alemán
+│   ├── es.lang                # Español
+│   ├── fr.lang                # Francés
+│   ├── it.lang                # Italiano
+│   ├── ja.lang                # Japonés
+│   ├── pt-BR.lang             # Portugués (Brasil)
+│   ├── pt-PT.lang             # Portugués (Portugal)
+│   ├── ru.lang                # Ruso
+│   └── template.lang          # Plantilla base
+└── screenshots/              # Capturas de pantalla
+├── config-tool.png
+└── main-menu.png
 ```
 
 ### Rutas de Instalación
