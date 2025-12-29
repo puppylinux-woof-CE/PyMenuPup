@@ -1465,10 +1465,6 @@ class ArcMenuLauncher(Gtk.Window):
         if self.config['window'].get('profile_in_places', False):
             profile_section = self.create_profile_section()
             places_box.pack_start(profile_section, False, False, 5)
-            
-            # ¡NO agregamos hostname aquí porque ya está en create_profile_section!
-            # El hostname ya está incluido dentro de create_profile_section()
-            
             places_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 5)
         
         # 2. LUGARES DEL SISTEMA (Home, Downloads, etc.)
@@ -1484,7 +1480,7 @@ class ArcMenuLauncher(Gtk.Window):
         # Fuente para los textos
         font_desc = Pango.FontDescription.from_string(self.config['font'].get('family_categories', 'Sans'))
         font_desc.set_size(self.config['font'].get('size_categories', 12000))
-
+    
         for icon_name, label, path in system_places:
             btn = Gtk.Button()
             btn.set_relief(Gtk.ReliefStyle.NONE)
@@ -1510,8 +1506,8 @@ class ArcMenuLauncher(Gtk.Window):
             btn.add(hbox)
             btn.connect("clicked", lambda b, p=path: open_directory(p))
             places_box.pack_start(btn, False, False, 0)
-
-# 3. SEPARADOR Y FAVORITOS
+    
+        # 3. SEPARADOR Y FAVORITOS
         places_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 5)
         
         # Solo mostrar favoritos si NO están ocultos
@@ -1538,16 +1534,106 @@ class ArcMenuLauncher(Gtk.Window):
                     hbox.set_halign(Gtk.Align.START)
                     hbox.set_margin_start(5)
                     
-                    # Carga de icono
                     icon_name = fav_info.get("Icon", "star")
-                    if os.path.isabs(icon_name) and os.path.exists(icon_name):
-                        try:
-                            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_name, 24, 24)
-                            fav_icon = Gtk.Image.new_from_pixbuf(pixbuf)
-                        except:
-                            fav_icon = Gtk.Image.new_from_icon_name("application-x-executable", Gtk.IconSize.DND)
+                    
+                    # Detectar si es una carpeta (para comandos como "pcmanfm '/ruta'")
+                    exec_cmd = fav_info.get('Exec', '')
+                    is_folder_fav = False
+                    folder_path = None
+                    
+                    file_managers = ['pcmanfm', 'rox', 'thunar', 'nautilus', 'dolphin', 'caja', 'spacefm']
+                    for fm in file_managers:
+                        if exec_cmd.startswith(fm + ' '):
+                            parts = exec_cmd.split(' ', 1)
+                            if len(parts) > 1:
+                                potential_path = parts[1].strip().strip("'\"")
+                                folder_path = os.path.expanduser(potential_path)
+                                if os.path.isdir(folder_path):
+                                    is_folder_fav = True
+                                    break
+                    
+                    # También verificar si es una ruta directa
+                    if not is_folder_fav:
+                        test_path = exec_cmd.strip("'\"")
+                        folder_path = os.path.expanduser(test_path)
+                        if os.path.isdir(folder_path):
+                            is_folder_fav = True
+                    
+                    if is_folder_fav:
+                        # BUSCAR ÍCONOS DE CARPETA EN /usr/local/lib/X11/pixmaps/
+                        folder_icon_path = None
+                        search_paths = [
+                            '/usr/local/lib/X11/pixmaps/',
+                            '/usr/share/pixmaps/',
+                            '/usr/share/icons/hicolor/48x48/places/',
+                            '/usr/share/icons/Adwaita/48x48/places/'
+                        ]
+                        
+                        # Lista de posibles nombres de archivos de íconos de carpeta
+                        folder_icon_names = [
+                            'folder.png', 'folder.svg', 'folder.xpm', 'folder48.png',
+                            'folder-blue.png', 'folder-green.png', 'folder-red.png',
+                            'folder-yellow.png', 'folder-documents.png', 'folder-downloads.png'
+                        ]
+                        
+                        for search_path in search_paths:
+                            if os.path.exists(search_path):
+                                for icon_file in folder_icon_names:
+                                    test_path = os.path.join(search_path, icon_file)
+                                    if os.path.exists(test_path):
+                                        folder_icon_path = test_path
+                                        break
+                                if folder_icon_path:
+                                    break
+                        
+                        if folder_icon_path:
+                            try:
+                                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(folder_icon_path, 24, 24)
+                                fav_icon = Gtk.Image.new_from_pixbuf(pixbuf)
+                            except Exception as e:
+                                print(f"Error cargando ícono de carpeta {folder_icon_path}: {e}")
+                                fav_icon = Gtk.Image.new_from_icon_name("folder", Gtk.IconSize.DND)
+                        else:
+                            # Si no se encuentra ícono personalizado, usar el del tema
+                            fav_icon = Gtk.Image.new_from_icon_name("folder", Gtk.IconSize.DND)
                     else:
-                        fav_icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.DND)
+                        # Para favoritos que no son carpetas (aplicaciones)
+                        # Usar el sistema robusto de carga de íconos
+                        try:
+                            # Primero intentar con load_app_icon que tiene caché y fallbacks
+                            icon_size = 24  # Tamaño para la columna de places
+                            
+                            # Verificar si es una ruta absoluta
+                            if os.path.isabs(icon_name) and os.path.exists(icon_name):
+                                # Cargar desde archivo
+                                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                                    icon_name, icon_size, icon_size, True
+                                )
+                                fav_icon = Gtk.Image.new_from_pixbuf(pixbuf)
+                            else:
+                                # Buscar ícono en las rutas del parser
+                                icon_path = self.find_icon_path(icon_name)
+                                if icon_path and os.path.exists(icon_path):
+                                    # Cargar desde archivo encontrado
+                                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                                        icon_path, icon_size, icon_size, True
+                                    )
+                                    fav_icon = Gtk.Image.new_from_pixbuf(pixbuf)
+                                else:
+                                    # Intentar desde tema de íconos
+                                    try:
+                                        theme = Gtk.IconTheme.get_default()
+                                        pixbuf = theme.load_icon(
+                                            icon_name, icon_size, Gtk.IconLookupFlags.FORCE_SIZE
+                                        )
+                                        fav_icon = Gtk.Image.new_from_pixbuf(pixbuf)
+                                    except Exception as theme_error:
+                                        print(f"No se encontró ícono {icon_name} en tema: {theme_error}")
+                                        # Fallback a ícono genérico
+                                        fav_icon = Gtk.Image.new_from_icon_name("application-x-executable", Gtk.IconSize.DND)
+                        except Exception as e:
+                            print(f"Error cargando ícono {icon_name}: {e}")
+                            fav_icon = Gtk.Image.new_from_icon_name("application-x-executable", Gtk.IconSize.DND)
                     
                     fav_icon.set_pixel_size(24)
                     
@@ -1559,7 +1645,7 @@ class ArcMenuLauncher(Gtk.Window):
                     hbox.pack_start(fav_label, True, True, 0)
                     btn.add(hbox)
                     
-# Capturar comando y nombre directamente para evitar problemas de closure
+                    # Capturar comando y nombre directamente para evitar problemas de closure
                     btn.connect("clicked", lambda b, cmd=fav_info['Exec'], name=fav_info['Name'], 
                                icon=fav_info['Icon'], comment=fav_info['Comment']: 
                                self.on_app_clicked(b, {'Name': name, 'Exec': cmd, 'Icon': icon, 'Comment': comment}))
@@ -1571,8 +1657,8 @@ class ArcMenuLauncher(Gtk.Window):
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scrolled.add(places_box)
         
-        return scrolled
-                
+        return scrolled       
+                        
     def safe_execute(self, command):
             """Busca el comando real dentro del .desktop y lo ejecuta"""
             try:
