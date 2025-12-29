@@ -184,11 +184,34 @@ class TranslationManager:
         'In applications column': 'In applications column',
     }
     
-    def __init__(self):
+    def __init__(self, locale_paths=None, app_name=None):
+        self.locale_paths = self._resolve_locale_paths(locale_paths, app_name)
         self.translations = self.DEFAULT_TRANSLATIONS.copy()
         self.current_lang = self._detect_system_language()
         self._load_translations()
         self.category_map = self._build_category_map()
+        
+    def _resolve_locale_paths(self, locale_paths=None, app_name=None):
+        paths = []
+        
+        # Usar rutas personalizadas si se proporcionan
+        if locale_paths:
+            for p in locale_paths:
+                paths.append(os.path.expanduser(p))
+        
+        # Agregar rutas estándar basadas en el nombre de la aplicación
+        if app_name:
+            paths.extend([
+                os.path.expanduser(f"~/.config/{app_name}/locale"),
+                f"/usr/local/share/locale/{app_name}",
+                f"/usr/share/locale/{app_name}",
+            ])
+        else:
+            # Si no se proporciona app_name, usar las rutas por defecto
+            paths = TranslationManager.LOCALE_PATHS.copy()  # Cambiado a LOCALE_PATHS (no DEFAULT_LOCALE_PATHS)
+        
+        return paths
+        
     
     def _build_category_map(self):
         """
@@ -210,7 +233,7 @@ class TranslationManager:
             category_map[cat] = cat
         
         # Buscar traducciones en todos los archivos .lang disponibles
-        for locale_path in self.LOCALE_PATHS:
+        for locale_path in self.locale_paths:
             if not os.path.exists(locale_path):
                 continue
             
@@ -252,7 +275,7 @@ class TranslationManager:
     def _find_lang_file(self, lang_code):
         """Busca el archivo .lang en las rutas configuradas"""
         # Primero intenta con el código completo (ej: es-MX.lang)
-        for base_path in self.LOCALE_PATHS:
+        for base_path in self.locale_paths:
             full_path = os.path.join(base_path, f"{lang_code}.lang")
             if os.path.exists(full_path):
                 return full_path
@@ -260,7 +283,7 @@ class TranslationManager:
         # Si no encuentra, intenta solo con el idioma base (ej: es.lang)
         if '-' in lang_code:
             base_lang = lang_code.split('-')[0]
-            for base_path in self.LOCALE_PATHS:
+            for base_path in self.locale_paths:  # Cambia esto también
                 full_path = os.path.join(base_path, f"{base_lang}.lang")
                 if os.path.exists(full_path):
                     return full_path
@@ -315,7 +338,7 @@ class TranslationManager:
             base_lang = self.current_lang.split('-')[0] if '-' in self.current_lang else self.current_lang
             if base_lang != 'en':
                 print(f"⚠️  No se encontró archivo de traducción para '{self.current_lang}'")
-                print(f"   Buscado en: {', '.join(self.LOCALE_PATHS)}")
+                print(f"   Buscado en: {', '.join(self.locale_paths)}")
                 print(f"   Usando traducciones por defecto (inglés)")
     
     def get(self, key, default=None):
