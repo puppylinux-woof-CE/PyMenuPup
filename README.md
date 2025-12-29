@@ -65,70 +65,125 @@ Graphical configuration tool to customize the menu.
 
 ---
 
-## 🌍 Translation System
+# 🌍 Translation System
 
-PyMenuPup uses a simple, user-friendly translation system based on `.lang` files. No need for complex tools like `poedit` or `gettext`.
+PyMenuPup uses a **simple and user-friendly translation system** based on `.lang` files.  
+No complex tools like `poedit` or `gettext` are needed.
 
-### How It Works
+The project already includes a **ready-to-use `template.lang`**, so you only need to copy and translate it.
 
-Translations are stored in plain text files with a simple `key = value` format:
-```
-# Example: /usr/share/locale/pymenupup/es.lang
+---
+
+## How It Works
+
+Translations use a plain text `key = value` format.  
+You only translate the text **after the `=` sign**.
+
+```text
+# Example
 Search applications... = Buscar aplicaciones...
 Shutdown = Apagar
 Desktop = Escritorio
 ```
 
-### Translation Files Location
+If a line is left empty, PyMenuPup will automatically use English.
 
-Translation files are searched in order of priority:
+---
 
-1. `~/.config/pymenupup/locale/` - User overrides (highest priority)
-2. `/usr/local/share/locale/pymenupup/` - Local installation
-3. `/usr/share/locale/pymenupup/` - System-wide
+## Translation Files Location
 
-### Supported Languages
+Translation files are searched in this order (highest priority first):
 
-- **English (en)** - Built-in (no file needed)
-- **Spanish (es)** - `es.lang` included
-- **French (fr)** - `fr.lang` included
+1. `~/.config/pymenupup/locale/` — **User translations** (recommended)
+2. `/usr/local/share/locale/pymenupup/`
+3. `/usr/share/locale/pymenupup/` — System-wide
 
-### Creating a New Translation
+> **Tip:** Using the user folder avoids modifying system files.
 
-To translate PyMenuPup to your language:
+---
 
-1. Copy the English or Spanish `.lang` file:
+## Supported Languages
+
+- **English (en)** — Built-in (no file needed)
+- **Spanish (es)** — `es.lang` included
+- **French (fr)** — `fr.lang` included
+
+More languages can be added easily.
+
+---
+
+## Creating a New Translation (Recommended)
+
+### 1. Copy the template file and rename it using your language code:
+
 ```bash
-sudo cp /usr/share/locale/pymenupup/es.lang /usr/share/locale/pymenupup/YOUR_LANG.lang
+template.lang → es.lang
 ```
 
-2. Edit the file with any text editor:
-```bash
-sudo nano /usr/share/locale/pymenupup/YOUR_LANG.lang
+**Examples:**
+- `fr.lang` — French
+- `de.lang` — German
+- `pt.lang` — Portuguese
+
+### 2. Open the file with any text editor.
+
+### 3. Translate only the text on the right side of `=`:
+
+```text
+PyMenuPup Configurator = Configurador de PyMenuPup
+Window = Ventana
+Colors = Colores
+Font = Fuente
 ```
 
-3. Translate the values (right side of `=`):
-```
-# Before
-Search applications... = Buscar aplicaciones...
+### 4. Save the file and restart PyMenuPup.
 
-# After (example: German)
-Search applications... = Anwendungen suchen...
-```
+**That's it! 🎉** No Python code changes required.
 
-4. Save and restart PyMenuPup
+---
 
-**That's it!** No need to modify any Python code.
+## Regional Variants
 
-### Regional Variants
+Regional language files are supported, for example:
 
-You can create regional variants like:
-- `es-MX.lang` (Spanish - Mexico)
-- `es-AR.lang` (Spanish - Argentina)
-- `fr-CA.lang` (French - Canada)
-- `pt-BR.lang` (Portuguese - Brazil)
+- `es-MX.lang` — Spanish (Mexico)
+- `es-AR.lang` — Spanish (Argentina)
+- `fr-CA.lang` — French (Canada)
+- `pt-BR.lang` — Portuguese (Brazil)
 
-The system automatically falls back to the base language if a regional variant is not found.
+If a regional file is not found, PyMenuPup will automatically fall back to the base language (for example `es.lang`).
+
+---
+
+## Example Translation Workflow
+
+1. **Create your language directory:**
+   ```bash
+   mkdir -p ~/.config/pymenupup/locale
+   ```
+
+2. **Copy the template:**
+   ```bash
+   cp template.lang ~/.config/pymenupup/locale/es.lang
+   ```
+
+3. **Edit and translate:**
+   ```bash
+   nano ~/.config/pymenupup/locale/es.lang
+   ```
+
+4. **Restart PyMenuPup** and your language will be automatically detected!
+
+---
+
+## Contributing Translations
+
+If you create a translation for a new language, consider contributing it back to the project:
+
+1. Fork the repository
+2. Add your `.lang` file to the `locale/` directory
+3. Submit a pull request
+---
 
 ### Category Name Mapping
 

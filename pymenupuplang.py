@@ -139,6 +139,13 @@ class TranslationManager:
         'Config saved (without closing).': 'Config saved (without closing).',
         'An error occurred:': 'An error occurred:',
         'PyMenu Configurator': 'PyMenu Configurator',
+        'Home': 'Home',
+        'Downloads': 'Downloads',
+        'Music': 'Music',
+        'Videos': 'Videos',
+        'Pictures': 'Pictures',
+        'Documents': 'Documents',
+        'Open directory:': 'Open directory:',
         
         # AÑADIDAS LAS NUEVAS TRADUCCIONES:
         'Favorites': 'Favorites',
@@ -166,14 +173,15 @@ class TranslationManager:
         'Select Icon': 'Select Icon',
         'Image files': 'Image files',
         'All files': 'All files',
-        
-        # NUEVAS OPCIONES DEL MENÚ
         'Hide places sidebar:': 'Hide places sidebar:',
         '(Hides both places and favorites)': '(Hides both places and favorites)',
         'Hide favorites only:': 'Hide favorites only:',
         '(Show places but hide favorites)': '(Show places but hide favorites)',
         'Show profile in places sidebar:': 'Show profile in places sidebar:',
         '(Instead of header)': '(Instead of header)',
+        'Search bar container:': 'Search bar container:',
+        'In window': 'In window',
+        'In applications column': 'In applications column',
     }
     
     def __init__(self):

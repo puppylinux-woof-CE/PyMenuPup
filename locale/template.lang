@@ -55,6 +55,12 @@ Comando validado: =
 Error creando acceso directo: = 
 
 # === User Directories (XDG) ===
+Home = 
+Downloads = 
+Music = 
+Videos = 
+Pictures = 
+Documents = 
 DownloadsDir = 
 MusicDir = 
 VideosDir = 
@@ -64,7 +70,35 @@ Open directory: =
 
 # === Social Networks ===
 Social Networks = 
+Hide social networks = 
 Hide social networks: = 
+
+# === GUI Configuration Settings ===
+General = 
+Search bar position: = 
+Use system theme: = 
+Background color: = 
+Border color: = 
+Categories background: = 
+Text normal: = 
+Header (OS): = 
+Header (Kernel): = 
+Header (Hostname): = 
+Hover background: = 
+Button background: = 
+Button text: = 
+Font family: = 
+Category font: = 
+Category size: = 
+App name size: = 
+Header size: = 
+Profile pic path: = 
+Profile manager: = 
+Shutdown command: = 
+JWM Tray config: = 
+Tint2 config: = 
+Use Tint2 (instead of JWM): = 
+Search engine: = 
 
 # === Window Options ===
 Window width: = 
@@ -73,8 +107,6 @@ Icon size: =
 Category icon size: = 
 Profile pic size: = 
 Profile pic shape: = 
-square = 
-circular = 
 Show window frame: = 
 (No transparency) = 
 
@@ -82,7 +114,6 @@ Show window frame: =
 Hide header: = 
 Hide profile picture: = 
 Hide quick access: = 
-Hide social networks: = 
 Hide categories text: = 
 Hide app names: = 
 Hide OS name: = 
@@ -95,7 +126,7 @@ Hide favorites only: =
 Show profile in places sidebar: = 
 (Instead of header) = 
 
-# === Header Layout ===
+# === Header Design ===
 Header layout: = 
 Header text alignment: = 
 Avatar left = 
@@ -103,6 +134,8 @@ Avatar right =
 Avatar center = 
 
 # === Shapes and Positions ===
+square = 
+circular = 
 top = 
 bottom = 
 center = 
@@ -111,36 +144,9 @@ right =
 
 # === Alignment ===
 Horizontal alignment: = 
-Search bar position: = 
-
-# === Colors ===
-Use system theme: = 
-Background color: = 
-Border color: = 
-Categories background: = 
-Text normal: = 
-Header (OS): = 
-Header (Kernel): = 
-Header (Hostname): = 
-Hover background: = 
-Button background: = 
-Button text: = 
-
-# === Fonts ===
-Font family: = 
-Category font: = 
-Category size: = 
-App name size: = 
-Header size: = 
-
-# === Paths ===
-Profile pic path: = 
-Profile manager: = 
-Shutdown command: = 
-JWM Tray config: = 
-Tint2 config: = 
-Use Tint2 (instead of JWM): = 
-Search engine: = 
+Search bar container: =
+In window = 
+In applications column =
 
 # === Categories ===
 Excluded categories: = 
@@ -162,17 +168,14 @@ Multimedia =
 Fun = 
 Help = 
 Rectify = 
-Shutdown = 
-Leave = 
 
-# === Favorites Section ===
+# === FAVORITES ===
 Favorites = 
 Add favorite = 
 No favorites yet. Click here to add one. = 
 Add Favorite = 
 Add = 
 Select an application: = 
-Search applications... = 
 Application = 
 Select a directory: = 
 Path to directory = 
@@ -192,19 +195,9 @@ Select Icon =
 Image files = 
 All files = 
 
-# === Configuration Dialogs ===
+# === Configuration Messages ===
 Select profile picture = 
 Select profile manager = 
 Select shutdown command = 
 Select JWM config = 
-Select Tint2 config = 
-Select = 
-Cancel = 
-
-# === GUI Configuration Settings ===
-General = 
-
-# === Note ===
-# Lines ending with ':' are labels (Window width:, Hide header:, etc.)
-# Lines without ':' are options/buttons (Save, Exit, Avatar left, etc.)
-# Lines in parentheses are tooltips/descriptions ((No transparency), etc.)
+Select Tint2 config =

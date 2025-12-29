@@ -92,6 +92,7 @@ class ConfigManager:
                 "hide_places": False,
                 "hide_favorites": False, 
                 "search_bar_position": "bottom",
+                "search_bar_container": "window",
                 "hide_quick_access": True,
                 "hide_social_networks": True,
                 "halign": "left",
@@ -1004,38 +1005,34 @@ class ArcMenuLauncher(Gtk.Window):
         content_box.pack_start(self.create_categories_sidebar(), False, False, 0)
         content_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), False, False, 0)
         
-        # Columna 4: Aplicaciones
-        content_box.pack_start(self.create_applications_area(), True, True, 0)
+# Columna 4: Aplicaciones
+        apps_area = self.create_applications_area()
+        content_box.pack_start(apps_area, True, True, 0)
         
-        # === NUEVA LÓGICA: Verificar posición de la barra de búsqueda ===
-        search_position = self.config['window'].get('search_bar_position', 'bottom')
+        # === NUEVA LÓGICA: Verificar CONTENEDOR de la barra de búsqueda ===
+        search_container = self.config['window'].get('search_bar_container', 'window')
         
-        # Crear la barra de búsqueda y botones
-        search_and_buttons_box = self.create_search_and_buttons_box()
-        
-        if search_position == 'top':
-            # Si está arriba, insertarla después del header
-            # Contar cuántos elementos hay antes de content_box
-            main_box_children = main_box.get_children()
-            insert_position = 0
-            
-            # Encontrar la posición correcta (después del header/quick_access/separadores)
-            for i, child in enumerate(main_box_children):
-                if child == content_box:
-                    insert_position = i
-                    break
-            
-            # Insertar separador y barra de búsqueda
-#            main_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
-            main_box.pack_start(search_and_buttons_box, False, False, 0)
-            main_box.reorder_child(main_box.get_children()[-1], insert_position)
-            
-            main_box.pack_start(search_and_buttons_box, False, False, 0)
-            main_box.reorder_child(main_box.get_children()[-1], insert_position + 1)
+        if search_container == 'apps_column':
+            # La barra ya está integrada en create_applications_area()
+            pass
         else:
-            # Si está abajo (comportamiento original)
-#           main_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
-            main_box.pack_end(search_and_buttons_box, False, False, 0)
+            # Comportamiento original: barra en la ventana principal
+            search_position = self.config['window'].get('search_bar_position', 'bottom')
+            search_and_buttons_box = self.create_search_and_buttons_box()
+            
+            if search_position == 'top':
+                main_box_children = main_box.get_children()
+                insert_position = 0
+                
+                for i, child in enumerate(main_box_children):
+                    if child == content_box:
+                        insert_position = i
+                        break
+                
+                main_box.pack_start(search_and_buttons_box, False, False, 0)
+                main_box.reorder_child(main_box.get_children()[-1], insert_position)
+            else:
+                main_box.pack_end(search_and_buttons_box, False, False, 0)
         
         self.show_all()
         GLib.timeout_add(100, self.delayed_focus_grab)
@@ -1474,14 +1471,14 @@ class ArcMenuLauncher(Gtk.Window):
             
             places_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 5)
         
-# 2. LUGARES DEL SISTEMA (Home, Downloads, etc.)
+        # 2. LUGARES DEL SISTEMA (Home, Downloads, etc.)
         system_places = [
             ('user-home', TR.get('Home', 'Home'), '~'),
-            ('folder-download', TR.get('DownloadsDir', 'Downloads'), f"~/{TR.get('DownloadsDir', 'Downloads')}"),
-            ('folder-music', TR.get('MusicDir', 'Music'), f"~/{TR.get('MusicDir', 'Music')}"),
-            ('folder-documents', TR.get('DocumentsDir', 'Documents'), f"~/{TR.get('DocumentsDir', 'Documents')}"),
-            ('folder-pictures', TR.get('PicturesDir', 'Pictures'), f"~/{TR.get('PicturesDir', 'Pictures')}"),
-            ('folder-videos', TR.get('VideosDir', 'Videos'), f"~/{TR.get('VideosDir', 'Videos')}"),
+            ('folder-download', TR.get('Downloads', 'Downloads'), f"~/{TR.get('DownloadsDir', 'Downloads')}"),
+            ('folder-music', TR.get('Music', 'Music'), f"~/{TR.get('MusicDir', 'Music')}"),
+            ('folder-documents', TR.get('Documents', 'Documents'), f"~/{TR.get('DocumentsDir', 'Documents')}"),
+            ('folder-pictures', TR.get('Pictures', 'Pictures'), f"~/{TR.get('PicturesDir', 'Pictures')}"),
+            ('folder-videos', TR.get('Videos', 'Videos'), f"~/{TR.get('VideosDir', 'Videos')}"),
         ]
         
         # Fuente para los textos
@@ -1945,44 +1942,65 @@ class ArcMenuLauncher(Gtk.Window):
         return False
 
     def create_applications_area(self):
-        """Create applications display area"""
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        
-        self.apps_flowbox = Gtk.FlowBox()
-        self.apps_flowbox.set_valign(Gtk.Align.START)
-        self.apps_flowbox.set_max_children_per_line(30)
-        self.apps_flowbox.set_selection_mode(Gtk.SelectionMode.SINGLE)  # Cambiado a SINGLE
-        self.apps_flowbox.set_property("margin-left", 5)
-        self.apps_flowbox.set_property("margin-right", 5)
-        self.apps_flowbox.set_property("margin-top", 10)
-        self.apps_flowbox.set_property("margin-bottom", 10)
-        
-        apps_eventbox = Gtk.EventBox()
-        apps_eventbox.add(self.apps_flowbox)
-        apps_eventbox.add_events(Gdk.EventMask.ENTER_NOTIFY_MASK)
-        apps_eventbox.connect("enter-notify-event", self.on_apps_area_enter)
-        
-        # Conecta el manejador de teclas a la ventana del FlowBox
-        self.apps_flowbox.connect("key-press-event", self.on_apps_key_press)
-        
-        scrolled.add(apps_eventbox)
-        
-        first_category = None
-        preferred_order = ['Desktop', 'System', 'Setup', 'Utility', 'Filesystem', 
-                          'Graphic', 'Document', 'Business', 'Personal', 
-                          'Network', 'Internet', 'Multimedia', 'Fun', 'Help', 'Leave']
-        
-        for cat in preferred_order:
-            if cat in self.applications and self.applications[cat]:
-                first_category = cat
-                break
-        
-        if first_category:
-            self.current_category = first_category
-            GLib.idle_add(self.show_category_applications, first_category)
-        
-        return scrolled
+            """Create applications display area with optional integrated search bar"""
+            # Contenedor principal vertical para apps + búsqueda opcional
+            main_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+            
+            # Verificar si la búsqueda debe estar en esta columna
+            search_container = self.config['window'].get('search_bar_container', 'window')
+            search_position = self.config['window'].get('search_bar_position', 'bottom')
+            
+            # Si la búsqueda va arriba Y en esta columna, agregarla primero
+            if search_container == 'apps_column' and search_position == 'top':
+                search_and_buttons_box = self.create_search_and_buttons_box()
+                main_container.pack_start(search_and_buttons_box, False, False, 0)
+                main_container.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
+            
+            # Área de aplicaciones con scroll
+            scrolled = Gtk.ScrolledWindow()
+            scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+            
+            self.apps_flowbox = Gtk.FlowBox()
+            self.apps_flowbox.set_valign(Gtk.Align.START)
+            self.apps_flowbox.set_max_children_per_line(30)
+            self.apps_flowbox.set_selection_mode(Gtk.SelectionMode.SINGLE)
+            self.apps_flowbox.set_property("margin-left", 5)
+            self.apps_flowbox.set_property("margin-right", 5)
+            self.apps_flowbox.set_property("margin-top", 10)
+            self.apps_flowbox.set_property("margin-bottom", 10)
+            
+            apps_eventbox = Gtk.EventBox()
+            apps_eventbox.add(self.apps_flowbox)
+            apps_eventbox.add_events(Gdk.EventMask.ENTER_NOTIFY_MASK)
+            apps_eventbox.connect("enter-notify-event", self.on_apps_area_enter)
+            
+            self.apps_flowbox.connect("key-press-event", self.on_apps_key_press)
+            
+            scrolled.add(apps_eventbox)
+            main_container.pack_start(scrolled, True, True, 0)
+            
+            # Si la búsqueda va abajo Y en esta columna, agregarla al final
+            if search_container == 'apps_column' and search_position == 'bottom':
+                main_container.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
+                search_and_buttons_box = self.create_search_and_buttons_box()
+                main_container.pack_start(search_and_buttons_box, False, False, 0)
+            
+            # Cargar primera categoría
+            first_category = None
+            preferred_order = ['Desktop', 'System', 'Setup', 'Utility', 'Filesystem', 
+                              'Graphic', 'Document', 'Business', 'Personal', 
+                              'Network', 'Internet', 'Multimedia', 'Fun', 'Help', 'Leave']
+            
+            for cat in preferred_order:
+                if cat in self.applications and self.applications[cat]:
+                    first_category = cat
+                    break
+            
+            if first_category:
+                self.current_category = first_category
+                GLib.idle_add(self.show_category_applications, first_category)
+            
+            return main_container
     
     def on_apps_area_enter(self, widget, event):
         """Handle mouse entering the applications area"""
