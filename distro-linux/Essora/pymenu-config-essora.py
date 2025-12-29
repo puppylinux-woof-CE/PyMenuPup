@@ -73,6 +73,7 @@ class ConfigManager:
                 "size_header": 12000
             },
             "colors": {
+                "use_gtk_theme": True,
                 "background_opacity": 0.7,
                 "background": "rgba(0, 0, 0, 0.7)",
                 "border": "rgba(255, 255, 255, 0.1)",
