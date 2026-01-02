@@ -142,7 +142,8 @@ class ConfigManager:
                 "engine": "duckduckgo"
             },
             "tray": {
-                "use_tint2": False
+                "use_tint2": False,
+                "use_xfce": False
             },
             "categories": {
                 "excluded": []
@@ -193,6 +194,8 @@ def detect_window_manager():
             wm_content = f.read().strip().lower()
             if 'openbox-session' in wm_content or 'openbox' in wm_content:
                 return 'openbox'
+            elif 'xfce' in wm_content or 'xfce4' in wm_content:
+                return 'xfce'
     except FileNotFoundError:
         print(f"{TR['File /etc/windowmanager not found, assuming JWM']}")
     except Exception as e:
@@ -277,7 +280,7 @@ class JWMMenuParser:
         self.tray_config = None
         
     def parse_tray_config(self):
-        """Parse tint2 or JWM config based on user preference to get tray position and size"""
+        """Parse tint2, XFCE or JWM config based on user preference to get tray position and size"""
         tray_info = {
             'height': 30,
             'width': 1300,
@@ -298,14 +301,30 @@ class JWMMenuParser:
         # Si es Openbox, forzar uso de tint2
         if detected_wm == 'openbox':
             use_tint2 = True
+            use_xfce = False
             print(f"🔍 {TR['Window Manager detected:']} Openbox → {TR['Automatically using Tint2 config']}")
+        elif detected_wm == 'xfce':
+            use_tint2 = False
+            use_xfce = True
+            print(f"🔍 {TR['Window Manager detected:']} XFCE → {TR['Automatically using XFCE config']}")
         else:
             # Si es JWM, usar la preferencia del usuario del JSON
             use_tint2 = config.get('tray', {}).get('use_tint2', False)
-            print(f"🔍 Window Manager detectado: JWM → Usando configuración del usuario (use_tint2={use_tint2})")
+            use_xfce = config.get('tray', {}).get('use_xfce', False)
+            print(f"🔍 Window Manager detectado: JWM → Usando configuración del usuario (use_tint2={use_tint2}, use_xfce={use_xfce})")
         
-        if use_tint2:
-            # Intentar leer tint2rc desde la ruta configurada
+        # PRIMERO: Intentar con XFCE si está configurado o detectado
+        if use_xfce or detected_wm == 'xfce':
+            xfce_config = self.parse_xfce_panel_config()
+            if xfce_config:
+                tray_info.update(xfce_config)
+                tray_info['source'] = 'xfce'
+                print(f"✅ Configuración de panel detectada desde XFCE: {tray_info}")
+                self.tray_config = tray_info
+                return tray_info
+        
+        # SEGUNDO: Intentar con Tint2 si está configurado
+        if use_tint2 or detected_wm == 'openbox':
             tint2_config = config.get('paths', {}).get('tint2rc', os.path.expanduser("/usr/share/tint2/tint2/tint2rc"))
             tint2_config = os.path.expanduser(tint2_config)
             
@@ -352,7 +371,7 @@ class JWMMenuParser:
             else:
                 print(f"⚠️ Tint2 config no encontrado en: {tint2_config}")
         
-        # Si no usa Tint2 o falló, intentar con JWM
+        # TERCERO: Si no usa XFCE o Tint2, o fallaron, intentar con JWM
         try:
             jwm_tray_file = config.get('paths', {}).get('jwmrc_tray', os.path.expanduser("/usr/share/jwm/jwm/jwmrc-tray"))
             jwm_tray_file = os.path.expanduser(jwm_tray_file)
@@ -488,6 +507,62 @@ class JWMMenuParser:
         except Exception as e:
             print(f"Error parsing JWM menu: {e}")
             return self.get_fallback_applications()
+            
+    def parse_xfce_panel_config(self):
+        """Parse XFCE panel configuration to get position and size"""
+        xfce_config = {}
+        
+        # Rutas comunes de configuración de XFCE
+        xfce_config_paths = [
+            os.path.expanduser("~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml"),
+            "/etc/xdg/xfce4/panel/default.xml",
+            "/usr/share/xfce4/panel/default.xml"
+        ]
+        
+        for config_file in xfce_config_paths:
+            if os.path.exists(config_file):
+                try:
+                    tree = ET.parse(config_file)
+                    root = tree.getroot()
+                    
+                    # Buscar propiedades del panel
+                    for property_elem in root.findall(".//property[@name='panel-1']"):
+                        for property_child in property_elem.findall(".//property[@type='int']"):
+                            name = property_child.get('name', '')
+                            value = property_child.get('value', '')
+                            
+                            if name == 'size':
+                                xfce_config['height'] = int(value)
+                            elif name == 'length':
+                                xfce_config['width'] = int(value)
+                    
+                    # Buscar posición del panel
+                    for property_elem in root.findall(".//property[@name='panel-1']/property[@name='position']"):
+                        position = property_elem.get('value', 'p=6;')
+                        # Parsear posición (ejemplo: "p=6;" significa bottom)
+                        if 'p=6' in position or 'p=8' in position:  # Bottom
+                            xfce_config['valign'] = 'bottom'
+                        elif 'p=12' in position or 'p=2' in position:  # Top
+                            xfce_config['valign'] = 'top'
+                        else:
+                            xfce_config['valign'] = 'bottom'  # Default
+                        
+                        # Determinar alineación horizontal
+                        if 'l=1' in position:  # Left
+                            xfce_config['halign'] = 'left'
+                        elif 'r=1' in position:  # Right
+                            xfce_config['halign'] = 'right'
+                        else:
+                            xfce_config['halign'] = 'center'  # Center
+                    
+                    if xfce_config:
+                        return xfce_config
+                        
+                except Exception as e:
+                    print(f"❌ Error parsing XFCE config {config_file}: {e}")
+                    continue
+        
+        return None            
     
     def extract_icon_paths(self, root):
         """Extract icon paths from JWM config"""
@@ -576,6 +651,8 @@ class ArcMenuLauncher(Gtk.Window):
         self.selected_category = None
         self.hovered_category = None
         self.selected_category_row = None
+        self.showing_favorites = False
+        self.favorites_cleanup_timeout = None 
         
         self.pos_x = x
         self.pos_y = y
@@ -1510,154 +1587,238 @@ class ArcMenuLauncher(Gtk.Window):
         # 3. SEPARADOR Y FAVORITOS
         places_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 5)
         
-        # Solo mostrar favoritos si NO están ocultos
-        if not self.config['window'].get('hide_favorites', False):
-            favorites = self.get_favorites()
-            if favorites:
-                for fav in favorites:
-                    # Crear estructura de datos consistente
-                    fav_info = {
-                        'Name': fav.get('name', 'App'),
-                        'Exec': fav.get('exec', ''),
-                        'Icon': fav.get('icon', 'star'),
-                        'Comment': fav.get('name', 'App'),
-                        'Terminal': False,
-                        'Categories': []
-                    }
-                    
-                    btn = Gtk.Button()
-                    btn.set_relief(Gtk.ReliefStyle.NONE)
-                    btn.get_style_context().add_class('social-button')
-                    btn.set_size_request(40, -1)
-                    
-                    hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-                    hbox.set_halign(Gtk.Align.START)
-                    hbox.set_margin_start(5)
-                    
-                    icon_name = fav_info.get("Icon", "star")
-                    
-                    # Detectar si es una carpeta (para comandos como "pcmanfm '/ruta'")
-                    exec_cmd = fav_info.get('Exec', '')
-                    is_folder_fav = False
-                    folder_path = None
-                    
-                    file_managers = ['pcmanfm', 'rox', 'thunar', 'nautilus', 'dolphin', 'caja', 'spacefm']
-                    for fm in file_managers:
-                        if exec_cmd.startswith(fm + ' '):
-                            parts = exec_cmd.split(' ', 1)
-                            if len(parts) > 1:
-                                potential_path = parts[1].strip().strip("'\"")
-                                folder_path = os.path.expanduser(potential_path)
-                                if os.path.isdir(folder_path):
-                                    is_folder_fav = True
-                                    break
-                    
-                    # También verificar si es una ruta directa
-                    if not is_folder_fav:
-                        test_path = exec_cmd.strip("'\"")
-                        folder_path = os.path.expanduser(test_path)
-                        if os.path.isdir(folder_path):
-                            is_folder_fav = True
-                    
-                    if is_folder_fav:
-                        # BUSCAR ÍCONOS DE CARPETA EN /usr/local/lib/X11/pixmaps/
-                        folder_icon_path = None
-                        search_paths = [
-                            '/usr/local/lib/X11/pixmaps/',
-                            '/usr/share/pixmaps/',
-                            '/usr/share/icons/hicolor/48x48/places/',
-                            '/usr/share/icons/Adwaita/48x48/places/'
-                        ]
+        # ===== AGREGAR FAVORITOS =====
+        favorites = self.config.get('favorites', [])
+        if favorites:
+            # Crear un contenedor especial para toda la sección de favoritos
+            favorites_section_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+            
+            # Título de favoritos
+            fav_title_label = Gtk.Label(label="⭐ " + TR.get('Favorites', 'Favorites'))
+            fav_title_label.set_halign(Gtk.Align.START)
+            fav_title_label.set_margin_start(5)
+            fav_title_label.override_font(font_desc)
+            favorites_section_box.pack_start(fav_title_label, False, False, 2)
+            
+            # Contenedor para los botones de favoritos
+            favorites_buttons_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+            
+            # Solo mostrar favoritos si NO están ocultos
+            if not self.config['window'].get('hide_favorites', False):
+                favorites = self.get_favorites()
+                if favorites:
+                    for fav in favorites:
+                        # Crear estructura de datos consistente
+                        fav_info = {
+                            'Name': fav.get('name', 'App'),
+                            'Exec': fav.get('exec', ''),
+                            'Icon': fav.get('icon', 'star'),
+                            'Comment': fav.get('name', 'App'),
+                            'Terminal': False,
+                            'Categories': []
+                        }
                         
-                        # Lista de posibles nombres de archivos de íconos de carpeta
-                        folder_icon_names = [
-                            'folder.png', 'folder.svg', 'folder.xpm', 'folder48.png',
-                            'folder-blue.png', 'folder-green.png', 'folder-red.png',
-                            'folder-yellow.png', 'folder-documents.png', 'folder-downloads.png'
-                        ]
+                        btn = Gtk.Button()
+                        btn.set_relief(Gtk.ReliefStyle.NONE)
+                        btn.get_style_context().add_class('social-button')
+                        btn.set_size_request(40, -1)
                         
-                        for search_path in search_paths:
-                            if os.path.exists(search_path):
-                                for icon_file in folder_icon_names:
-                                    test_path = os.path.join(search_path, icon_file)
-                                    if os.path.exists(test_path):
-                                        folder_icon_path = test_path
+                        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+                        hbox.set_halign(Gtk.Align.START)
+                        hbox.set_margin_start(5)
+                        
+                        icon_name = fav_info.get("Icon", "star")
+                        
+                        # Detectar si es una carpeta (para comandos como "pcmanfm '/ruta'")
+                        exec_cmd = fav_info.get('Exec', '')
+                        is_folder_fav = False
+                        folder_path = None
+                        
+                        file_managers = ['pcmanfm', 'rox', 'thunar', 'nautilus', 'dolphin', 'caja', 'spacefm']
+                        for fm in file_managers:
+                            if exec_cmd.startswith(fm + ' '):
+                                parts = exec_cmd.split(' ', 1)
+                                if len(parts) > 1:
+                                    potential_path = parts[1].strip().strip("'\"")
+                                    folder_path = os.path.expanduser(potential_path)
+                                    if os.path.isdir(folder_path):
+                                        is_folder_fav = True
                                         break
-                                if folder_icon_path:
-                                    break
                         
-                        if folder_icon_path:
-                            try:
-                                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(folder_icon_path, 24, 24)
-                                fav_icon = Gtk.Image.new_from_pixbuf(pixbuf)
-                            except Exception as e:
-                                print(f"Error cargando ícono de carpeta {folder_icon_path}: {e}")
+                        # También verificar si es una ruta directa
+                        if not is_folder_fav:
+                            test_path = exec_cmd.strip("'\"")
+                            folder_path = os.path.expanduser(test_path)
+                            if os.path.isdir(folder_path):
+                                is_folder_fav = True
+                        
+                        if is_folder_fav:
+                            # BUSCAR ÍCONOS DE CARPETA EN /usr/local/lib/X11/pixmaps/
+                            folder_icon_path = None
+                            search_paths = [
+                                '/usr/local/lib/X11/pixmaps/',
+                                '/usr/share/pixmaps/',
+                                '/usr/share/icons/hicolor/48x48/places/',
+                                '/usr/share/icons/Adwaita/48x48/places/'
+                            ]
+                            
+                            # Lista de posibles nombres de archivos de íconos de carpeta
+                            folder_icon_names = [
+                                'folder.png', 'folder.svg', 'folder.xpm', 'folder48.png',
+                                'folder-blue.png', 'folder-green.png', 'folder-red.png',
+                                'folder-yellow.png', 'folder-documents.png', 'folder-downloads.png'
+                            ]
+                            
+                            for search_path in search_paths:
+                                if os.path.exists(search_path):
+                                    for icon_file in folder_icon_names:
+                                        test_path = os.path.join(search_path, icon_file)
+                                        if os.path.exists(test_path):
+                                            folder_icon_path = test_path
+                                            break
+                                    if folder_icon_path:
+                                        break
+                            
+                            if folder_icon_path:
+                                try:
+                                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(folder_icon_path, 24, 24)
+                                    fav_icon = Gtk.Image.new_from_pixbuf(pixbuf)
+                                except Exception as e:
+                                    print(f"Error cargando ícono de carpeta {folder_icon_path}: {e}")
+                                    fav_icon = Gtk.Image.new_from_icon_name("folder", Gtk.IconSize.DND)
+                            else:
+                                # Si no se encuentra ícono personalizado, usar el del tema
                                 fav_icon = Gtk.Image.new_from_icon_name("folder", Gtk.IconSize.DND)
                         else:
-                            # Si no se encuentra ícono personalizado, usar el del tema
-                            fav_icon = Gtk.Image.new_from_icon_name("folder", Gtk.IconSize.DND)
-                    else:
-                        # Para favoritos que no son carpetas (aplicaciones)
-                        # Usar el sistema robusto de carga de íconos
-                        try:
-                            # Primero intentar con load_app_icon que tiene caché y fallbacks
-                            icon_size = 24  # Tamaño para la columna de places
-                            
-                            # Verificar si es una ruta absoluta
-                            if os.path.isabs(icon_name) and os.path.exists(icon_name):
-                                # Cargar desde archivo
-                                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-                                    icon_name, icon_size, icon_size, True
-                                )
-                                fav_icon = Gtk.Image.new_from_pixbuf(pixbuf)
-                            else:
-                                # Buscar ícono en las rutas del parser
-                                icon_path = self.find_icon_path(icon_name)
-                                if icon_path and os.path.exists(icon_path):
-                                    # Cargar desde archivo encontrado
+                            # Para favoritos que no son carpetas (aplicaciones)
+                            # Usar el sistema robusto de carga de íconos
+                            try:
+                                # Primero intentar con load_app_icon que tiene caché y fallbacks
+                                icon_size = 24  # Tamaño para la columna de places
+                                
+                                # Verificar si es una ruta absoluta
+                                if os.path.isabs(icon_name) and os.path.exists(icon_name):
+                                    # Cargar desde archivo
                                     pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-                                        icon_path, icon_size, icon_size, True
+                                        icon_name, icon_size, icon_size, True
                                     )
                                     fav_icon = Gtk.Image.new_from_pixbuf(pixbuf)
                                 else:
-                                    # Intentar desde tema de íconos
-                                    try:
-                                        theme = Gtk.IconTheme.get_default()
-                                        pixbuf = theme.load_icon(
-                                            icon_name, icon_size, Gtk.IconLookupFlags.FORCE_SIZE
+                                    # Buscar ícono en las rutas del parser
+                                    icon_path = self.find_icon_path(icon_name)
+                                    if icon_path and os.path.exists(icon_path):
+                                        # Cargar desde archivo encontrado
+                                        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                                            icon_path, icon_size, icon_size, True
                                         )
                                         fav_icon = Gtk.Image.new_from_pixbuf(pixbuf)
-                                    except Exception as theme_error:
-                                        print(f"No se encontró ícono {icon_name} en tema: {theme_error}")
-                                        # Fallback a ícono genérico
-                                        fav_icon = Gtk.Image.new_from_icon_name("application-x-executable", Gtk.IconSize.DND)
-                        except Exception as e:
-                            print(f"Error cargando ícono {icon_name}: {e}")
-                            fav_icon = Gtk.Image.new_from_icon_name("application-x-executable", Gtk.IconSize.DND)
-                    
-                    fav_icon.set_pixel_size(24)
-                    
-                    fav_label = Gtk.Label(label=fav_info.get("Name", "App"))
-                    fav_label.set_halign(Gtk.Align.START)
-                    fav_label.override_font(font_desc)
-                    
-                    hbox.pack_start(fav_icon, False, False, 0)
-                    hbox.pack_start(fav_label, True, True, 0)
-                    btn.add(hbox)
-                    
-                    # Capturar comando y nombre directamente para evitar problemas de closure
-                    btn.connect("clicked", lambda b, cmd=fav_info['Exec'], name=fav_info['Name'], 
-                               icon=fav_info['Icon'], comment=fav_info['Comment']: 
-                               self.on_app_clicked(b, {'Name': name, 'Exec': cmd, 'Icon': icon, 'Comment': comment}))
-                    
-                    places_box.pack_start(btn, False, False, 0)
+                                    else:
+                                        # Intentar desde tema de íconos
+                                        try:
+                                            theme = Gtk.IconTheme.get_default()
+                                            pixbuf = theme.load_icon(
+                                                icon_name, icon_size, Gtk.IconLookupFlags.FORCE_SIZE
+                                            )
+                                            fav_icon = Gtk.Image.new_from_pixbuf(pixbuf)
+                                        except Exception as theme_error:
+                                            print(f"No se encontró ícono {icon_name} en tema: {theme_error}")
+                                            # Fallback a ícono genérico
+                                            fav_icon = Gtk.Image.new_from_icon_name("application-x-executable", Gtk.IconSize.DND)
+                            except Exception as e:
+                                print(f"Error cargando ícono {icon_name}: {e}")
+                                fav_icon = Gtk.Image.new_from_icon_name("application-x-executable", Gtk.IconSize.DND)
+                        
+                        fav_icon.set_pixel_size(24)
+                        
+                        fav_label = Gtk.Label(label=fav_info.get("Name", "App"))
+                        fav_label.set_halign(Gtk.Align.START)
+                        fav_label.override_font(font_desc)
+                        
+                        hbox.pack_start(fav_icon, False, False, 0)
+                        hbox.pack_start(fav_label, True, True, 0)
+                        btn.add(hbox)
+                        
+                        # Capturar comando y nombre directamente para evitar problemas de closure
+                        btn.connect("clicked", lambda b, cmd=fav_info['Exec'], name=fav_info['Name'], 
+                                   icon=fav_info['Icon'], comment=fav_info['Comment']: 
+                                   self.on_app_clicked(b, {'Name': name, 'Exec': cmd, 'Icon': icon, 'Comment': comment}))
+                        
+                        favorites_buttons_box.pack_start(btn, False, False, 0)
+            
+            favorites_section_box.pack_start(favorites_buttons_box, False, False, 0)
+            
+            # Crear EventBox para toda la sección de favoritos
+            favorites_event_box = Gtk.EventBox()
+            favorites_event_box.add(favorites_section_box)
+            favorites_event_box.add_events(Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
+            
+            # Conectar eventos de hover a TODA la sección de favoritos
+            favorites_event_box.connect("enter-notify-event", self.on_favorites_section_hover_enter)
+            favorites_event_box.connect("leave-notify-event", self.on_favorites_section_hover_leave)
+            
+            places_box.pack_start(favorites_event_box, False, False, 0)
         
         # Scroll automático
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scrolled.add(places_box)
         
-        return scrolled       
+        return scrolled
+    
+    def on_favorites_section_hover_enter(self, widget, event):
+        """Muestra los favoritos en la columna de aplicaciones al pasar el mouse sobre la sección"""
+        
+        # Cancelar cualquier timeout de categorías
+        if self.hover_timeout:
+            GLib.source_remove(self.hover_timeout)
+            self.hover_timeout = None
+        
+        # Guardar la categoría actual antes de cambiar
+        self.previous_category = self.current_category  # ← CAMBIAR ESTA LÍNEA (no "Favorites")
+        self.showing_favorites = True
+        self.just_left_favorites = False
+        
+        # Obtener favoritos
+        favorites = self.get_favorites()
+        if not favorites:
+            return False
+        
+        # Limpiar la columna de aplicaciones
+        if self.apps_flowbox:
+            for child in self.apps_flowbox.get_children():
+                child.destroy()
+        
+        # Convertir favoritos al formato de aplicación
+        fav_apps = []
+        for fav in favorites:
+            fav_app = {
+                'Name': fav.get('name', 'App'),
+                'Exec': fav.get('exec', ''),
+                'Icon': fav.get('icon', 'star'),
+                'Comment': fav.get('name', 'App'),
+                'Terminal': False,
+                'Categories': ['Favorites']
+            }
+            fav_apps.append(fav_app)
+        
+        # Mostrar favoritos en la columna de aplicaciones
+        for app_info in fav_apps:
+            button = self.create_app_button(app_info)
+            self.apps_flowbox.add(button)
+        
+        self.apps_flowbox.show_all()
+        return False
+    
+    def on_favorites_section_hover_leave(self, widget, event):
+        """Manejar salida de la sección de favoritos"""
+        
+        # Cancelar timeout existente si hay
+        if hasattr(self, 'favorites_cleanup_timeout') and self.favorites_cleanup_timeout is not None:
+            GLib.source_remove(self.favorites_cleanup_timeout)
+            self.favorites_cleanup_timeout = None
+        
+        return False
+
                         
     def safe_execute(self, command):
             """Busca el comando real dentro del .desktop y lo ejecuta"""
@@ -1954,18 +2115,47 @@ class ArcMenuLauncher(Gtk.Window):
     def on_category_hover_enter(self, row, event):
         """Handle mouse entering a category row"""
         category = self.get_row_category(row)
-        if not category or category == self.current_category:
+        if not category:
             return False
-            
+        
+        # Si ya estamos en esta categoría Y NO mostrando favoritos, no hacer nada
+        if category == self.current_category and not self.showing_favorites:
+            return False
+        
+        # PASO 1: Cancelar timeout de favoritos si existe
+        if hasattr(self, 'favorites_cleanup_timeout') and self.favorites_cleanup_timeout is not None:
+            GLib.source_remove(self.favorites_cleanup_timeout)
+            self.favorites_cleanup_timeout = None
+        
+        # PASO 2: Cancelar hover timeout anterior si existe
         if self.hover_timeout:
             GLib.source_remove(self.hover_timeout)
+            self.hover_timeout = None
+        
         if self.restore_timeout:
             GLib.source_remove(self.restore_timeout)
             self.restore_timeout = None
         
-        self.hover_timeout = GLib.timeout_add(150, self._activate_hover_preview, category)
-        self.hovered_category = category
+        # PASO 3: NUEVO - Programar activación con delay de 300ms
+        # Esto da tiempo para que el mouse "pase de largo" sin activar la categoría
+        def activate_category():
+            self.hover_timeout = None
+            self.showing_favorites = False
+            self.hovered_category = category
+            self.current_category = category
+            self.show_category_applications(category)
+            return False
         
+        # Solo activar después de 300ms de estar sobre la categoría
+        self.hover_timeout = GLib.timeout_add(250, activate_category)
+        
+        return False
+        
+    def _cleanup_favorites_state(self):
+        """Función de limpieza para el estado de favoritos"""
+        self.showing_favorites = False
+        self.favorites_cleanup_timeout = None
+        self.just_left_favorites = False
         return False
         
     def on_category_hover_leave(self, row, event):
@@ -2090,9 +2280,13 @@ class ArcMenuLauncher(Gtk.Window):
     
     def on_apps_area_enter(self, widget, event):
         """Handle mouse entering the applications area"""
-        print(TR['Mouse entered applications area'])
+        # Si estamos mostrando favoritos, NO hacer nada
+        # Esto permite que puedas hacer clic en los favoritos
+        if self.showing_favorites:
+            return False
+        
         return False
-    
+        
     def create_statusbar(self):
         """Create status bar (kept for compatibility but not shown)"""
         statusbar = Gtk.Statusbar()
@@ -2363,6 +2557,7 @@ class ArcMenuLauncher(Gtk.Window):
         
         self.current_category = category
         
+        # Limpiar apps actuales
         for child in self.apps_flowbox.get_children():
             child.destroy()
         

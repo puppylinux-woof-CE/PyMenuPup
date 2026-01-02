@@ -96,13 +96,14 @@ class ConfigManager:
                 "profile_manager": "",
                 "shutdown_cmd": "",
                 "jwmrc_tray": "/root/.jwmrc-tray",          
-                "tint2rc": "/root/.config/tint2/tint2rc"    
+                "tint2rc": "/root/.config/tint2/tint2rc",
+                "xfce_panel": "/root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml"
             },
             "search_engine": {
                 "engine": "duckduckgo"
             },
             "tray": {
-                "use_tint2": False
+                "type": "jwm"  # "jwm", "tint2", o "xfce"
             },
             "categories": {
                 "excluded": []
@@ -530,7 +531,8 @@ class ConfigWindow(Gtk.Window):
                 "profile_manager": TR['Profile manager:'],
                 "shutdown_cmd": TR['Shutdown command:'],
                 "jwmrc_tray": TR['JWM Tray config:'],
-                "tint2rc": TR['Tint2 config:']
+                "tint2rc": TR['Tint2 config:'],
+                "xfce_panel": TR['XFCE panel config:'] 
             }
             
             # --- Configuración de Rutas Generales ---
@@ -563,48 +565,57 @@ class ConfigWindow(Gtk.Window):
             
             grid.attach(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), 0, 3, 3, 1)
             
-            # --- Configuración de Tray ---
-            grid.attach(Gtk.Label(label=TR['Use Tint2 (instead of JWM):']), 0, 4, 1, 1)
-            self.tint2_checkbox = Gtk.CheckButton()
-            self.tint2_checkbox.set_active(self.config.get('tray', {}).get('use_tint2', False))
-            self.tint2_checkbox.connect("toggled", self.on_tint2_toggled)
-            grid.attach(self.tint2_checkbox, 1, 4, 1, 1)
+            # --- Configuración de Tray (unificada) ---
+            grid.attach(Gtk.Label(label=TR['Tray/Panel type:']), 0, 4, 1, 1)
+            tray_type_combo = Gtk.ComboBoxText()
+            tray_type_combo.append("jwm", TR['JWM Tray'])
+            tray_type_combo.append("tint2", TR['Tint2 Panel'])
+            tray_type_combo.append("xfce", TR['XFCE Panel'])
             
-            self.jwm_label = Gtk.Label(label=paths_to_config["jwmrc_tray"])
-            grid.attach(self.jwm_label, 0, 5, 1, 1)
+            current_tray_type = self.config.get('tray', {}).get('type', 'jwm')
+            tray_type_combo.set_active_id(current_tray_type)
+            tray_type_combo.connect("changed", self.on_tray_type_changed)
+            grid.attach(tray_type_combo, 1, 4, 1, 1)
+            
+            # Configuración de tray (unificada)
+            tray_grid = Gtk.Grid(row_spacing=10, column_spacing=10)
+            grid.attach(tray_grid, 0, 5, 3, 1)
+            
+            # JWM Tray config
+            self.jwm_label = Gtk.Label(label=TR['JWM Tray config:'])
+            tray_grid.attach(self.jwm_label, 0, 0, 1, 1)
             self.entry_jwmrc_tray = Gtk.Entry()
             self.entry_jwmrc_tray.set_text(self.config['paths'].get("jwmrc_tray", "/root/.jwmrc-tray"))
             self.entry_jwmrc_tray.connect("changed", self.on_path_changed, "paths", "jwmrc_tray")
-            grid.attach(self.entry_jwmrc_tray, 1, 5, 1, 1)
+            tray_grid.attach(self.entry_jwmrc_tray, 1, 0, 1, 1)
             browse_jwm = Gtk.Button(label="...")
             browse_jwm.connect("clicked", self.on_browse_file, self.entry_jwmrc_tray, TR['Select JWM config'])
-            grid.attach(browse_jwm, 2, 5, 1, 1)
+            tray_grid.attach(browse_jwm, 2, 0, 1, 1)
             
-            self.tint2_label = Gtk.Label(label=paths_to_config["tint2rc"])
-            grid.attach(self.tint2_label, 0, 6, 1, 1)
+            # Tint2 config
+            self.tint2_label = Gtk.Label(label=TR['Tint2 config:'])
+            tray_grid.attach(self.tint2_label, 0, 1, 1, 1)
             self.entry_tint2rc = Gtk.Entry()
             self.entry_tint2rc.set_text(self.config['paths'].get("tint2rc", "/root/.config/tint2/tint2rc"))
             self.entry_tint2rc.connect("changed", self.on_path_changed, "paths", "tint2rc")
-            grid.attach(self.entry_tint2rc, 1, 6, 1, 1)
+            tray_grid.attach(self.entry_tint2rc, 1, 1, 1, 1)
             browse_tint2 = Gtk.Button(label="...")
             browse_tint2.connect("clicked", self.on_browse_file, self.entry_tint2rc, TR['Select Tint2 config'])
-            grid.attach(browse_tint2, 2, 6, 1, 1)
+            tray_grid.attach(browse_tint2, 2, 1, 1, 1)
             
-            grid.attach(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), 0, 7, 3, 1)
+            # XFCE config
+            self.xfce_label = Gtk.Label(label=TR['XFCE panel config:'])
+            tray_grid.attach(self.xfce_label, 0, 2, 1, 1)
+            self.entry_xfce_panel = Gtk.Entry()
+            self.entry_xfce_panel.set_text(self.config['paths'].get("xfce_panel", "/root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml"))
+            self.entry_xfce_panel.connect("changed", self.on_path_changed, "paths", "xfce_panel")
+            tray_grid.attach(self.entry_xfce_panel, 1, 2, 1, 1)
+            browse_xfce = Gtk.Button(label="...")
+            browse_xfce.connect("clicked", self.on_browse_file, self.entry_xfce_panel, TR['Select XFCE panel config'])
+            tray_grid.attach(browse_xfce, 2, 2, 1, 1)
             
-            # --- Buscador ---
-            grid.attach(Gtk.Label(label=TR['Search engine:']), 0, 8, 1, 1)
-            search_engine_combo = Gtk.ComboBoxText()
-            search_engine_combo.append("google", "Google")
-            search_engine_combo.append("duckduckgo", "DuckDuckGo")
-            search_engine_combo.append("brave", "Brave Search")
-            search_engine_combo.append("searxng", "SearXNG")
-            search_engine_combo.append("librex", "LibreX")
-            search_engine_combo.set_active_id(self.config.get('search_engine', {}).get('engine', 'google'))
-            search_engine_combo.connect("changed", self.on_search_engine_changed)
-            grid.attach(search_engine_combo, 1, 8, 2, 1)
-            
-            grid.attach(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), 0, 9, 3, 1)
+            # Actualizar visibilidad inicial
+            self.update_tray_widgets_sensitivity()
             
 # === FIXED FAVORITES SECTION ===
             fav_title_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
@@ -617,7 +628,7 @@ class ConfigWindow(Gtk.Window):
             btn_always_add.connect("clicked", self.on_add_favorite_clicked)
             fav_title_box.pack_end(btn_always_add, False, False, 0)
             
-            grid.attach(fav_title_box, 0, 10, 3, 1)
+            grid.attach(fav_title_box, 0, 9, 3, 1)
             
             # Favorites list
             self.favorites_listbox = Gtk.ListBox()
@@ -629,17 +640,43 @@ class ConfigWindow(Gtk.Window):
             fav_scroll.set_size_request(-1, 200) # Minimum list height
             fav_scroll.add(self.favorites_listbox)
             
-            grid.attach(fav_scroll, 0, 11, 3, 1)
+            grid.attach(fav_scroll, 0, 10, 3, 1)
     
             # Wrap everything in a main scroll for Puppy Linux (small screens)
             main_scrolled = Gtk.ScrolledWindow()
             main_scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
             main_scrolled.add(grid)
-            
-            self.update_tray_widgets_sensitivity()
+     
             GLib.idle_add(self.load_favorites_list)
             
-            return main_scrolled
+            return main_scrolled            
+    
+    def update_tray_widgets_sensitivity(self):
+        """Actualizar la sensibilidad de los widgets según los checkboxes"""
+        use_tint2 = self.config.get('tray', {}).get('use_tint2', False)
+        use_xfce = self.config.get('tray', {}).get('use_xfce', False)
+        
+        # Si usa Tint2, deshabilitar JWM y XFCE
+        self.jwm_label.set_sensitive(not use_tint2 and not use_xfce)
+        self.entry_jwmrc_tray.set_sensitive(not use_tint2 and not use_xfce)
+        
+        # Si usa XFCE, deshabilitar JWM y Tint2
+        self.tint2_label.set_sensitive(use_tint2 and not use_xfce)
+        self.entry_tint2rc.set_sensitive(use_tint2 and not use_xfce)
+        
+        self.xfce_label.set_sensitive(use_xfce)
+        self.entry_xfce_panel.set_sensitive(use_xfce) 
+        
+    def on_tray_type_changed(self, combobox):
+        """Manejar el cambio de tipo de tray"""
+        tray_type = combobox.get_active_id()
+        
+        if 'tray' not in self.config:
+            self.config['tray'] = {}
+        
+        self.config['tray']['type'] = tray_type
+        self.config_manager.save_config(self.config)
+        self.update_tray_widgets_sensitivity()                
         
     def load_favorites_list(self):
             """Load and display the current favorites list"""
@@ -697,9 +734,11 @@ class ConfigWindow(Gtk.Window):
             hbox.pack_start(icon_label, False, False, 0)
             
             # REAL favorite name
-            name_label = Gtk.Label(label=name)
-            name_label.set_halign(Gtk.Align.START)
-            hbox.pack_start(name_label, True, True, 0)
+            name_button = Gtk.Button(label=name)
+            name_button.set_relief(Gtk.ReliefStyle.NONE)  # Sin borde de botón
+            name_button.set_halign(Gtk.Align.START)
+            name_button.connect("clicked", self.on_edit_favorite_clicked, fav)
+            hbox.pack_start(name_button, True, True, 0)
             
             # Command (truncated)
             cmd_preview = exec_cmd[:30] + "..." if len(exec_cmd) > 30 else exec_cmd
@@ -816,11 +855,23 @@ class ConfigWindow(Gtk.Window):
             cmd_name_entry.set_placeholder_text(TR.get('Favorite name', 'Favorite name'))
             cmd_box.pack_start(cmd_name_entry, False, False, 0)
             
-            # Command
+            # Command with browse button
             cmd_box.pack_start(Gtk.Label(label=TR.get('Command:', 'Command:'), halign=Gtk.Align.START), False, False, 0)
+            
+            # Horizontal box for command + browse button
+            cmd_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            
             cmd_exec_entry = Gtk.Entry()
             cmd_exec_entry.set_placeholder_text(TR.get('Command to execute', 'Command to execute'))
-            cmd_box.pack_start(cmd_exec_entry, False, False, 0)
+            cmd_hbox.pack_start(cmd_exec_entry, True, True, 0)
+            
+            # Browse button to select executable
+            cmd_browse_button = Gtk.Button(label="📂")
+            cmd_browse_button.set_tooltip_text(TR.get('Browse command', 'Browse command'))
+            cmd_browse_button.connect("clicked", self.on_browse_file, cmd_exec_entry, TR.get('Select command', 'Select command'))
+            cmd_hbox.pack_start(cmd_browse_button, False, False, 0)
+            
+            cmd_box.pack_start(cmd_hbox, False, False, 0)
             
             # Icon with browse button
             cmd_box.pack_start(Gtk.Label(label=TR.get('Icon (optional):', 'Icon (optional):'), halign=Gtk.Align.START), False, False, 0)
@@ -837,12 +888,6 @@ class ConfigWindow(Gtk.Window):
             icon_browse_button.set_tooltip_text(TR.get('Browse icon', 'Browse icon'))
             icon_browse_button.connect("clicked", self.on_browse_icon_clicked, cmd_icon_entry)
             icon_hbox.pack_start(icon_browse_button, False, False, 0)
-            
-            # File manager button
-            icon_file_manager_button = Gtk.Button(label="🗂️")
-            icon_file_manager_button.set_tooltip_text(TR.get('Open File Manager', 'Open File Manager'))
-            icon_file_manager_button.connect("clicked", self.on_open_file_manager_clicked)
-            icon_hbox.pack_start(icon_file_manager_button, False, False, 0)
             
             cmd_box.pack_start(icon_hbox, False, False, 0)
             
@@ -903,6 +948,92 @@ class ConfigWindow(Gtk.Window):
                     self.load_favorites_list() # Refresh the list in the configurator
             
             dialog.destroy()
+            
+    def on_edit_favorite_clicked(self, button, fav_original):
+        """Show dialog to edit an existing favorite"""
+        dialog = Gtk.Dialog(
+            title=TR.get('Edit Favorite', 'Edit Favorite'),
+            parent=self,
+            flags=0
+        )
+        dialog.add_buttons(
+            TR['Cancel'], Gtk.ResponseType.CANCEL,
+            TR.get('Save', 'Save'), Gtk.ResponseType.OK
+        )
+        dialog.set_default_size(500, 300)
+        
+        content = dialog.get_content_area()
+        content.set_spacing(10)
+        content.set_border_width(10)
+        
+        # Name
+        content.pack_start(Gtk.Label(label=TR.get('Name:', 'Name:'), halign=Gtk.Align.START), False, False, 0)
+        name_entry = Gtk.Entry()
+        name_entry.set_text(fav_original.get('name', ''))
+        content.pack_start(name_entry, False, False, 0)
+        
+        # Command with browse button
+        content.pack_start(Gtk.Label(label=TR.get('Command:', 'Command:'), halign=Gtk.Align.START), False, False, 0)
+        
+        cmd_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        exec_entry = Gtk.Entry()
+        exec_entry.set_text(fav_original.get('exec', ''))
+        cmd_hbox.pack_start(exec_entry, True, True, 0)
+        
+        # Browse button to select executable file
+        cmd_browse_button = Gtk.Button(label="📂")
+        cmd_browse_button.set_tooltip_text(TR.get('Browse command', 'Browse command'))
+        cmd_browse_button.connect("clicked", self.on_browse_file, exec_entry, TR.get('Select command', 'Select command'))
+        cmd_hbox.pack_start(cmd_browse_button, False, False, 0)
+        
+        content.pack_start(cmd_hbox, False, False, 0)
+        
+        # Icon with browse buttons
+        content.pack_start(Gtk.Label(label=TR.get('Icon (optional):', 'Icon (optional):'), halign=Gtk.Align.START), False, False, 0)
+        
+        icon_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        
+        icon_entry = Gtk.Entry()
+        icon_entry.set_text(fav_original.get('icon', ''))
+        icon_hbox.pack_start(icon_entry, True, True, 0)
+        
+        # Icon browse button
+        icon_browse_button = Gtk.Button(label="📂")
+        icon_browse_button.set_tooltip_text(TR.get('Browse icon', 'Browse icon'))
+        icon_browse_button.connect("clicked", self.on_browse_icon_clicked, icon_entry)
+        icon_hbox.pack_start(icon_browse_button, False, False, 0)
+        
+        content.pack_start(icon_hbox, False, False, 0)
+        
+        dialog.show_all()
+        response = dialog.run()
+        
+        if response == Gtk.ResponseType.OK:
+            name = name_entry.get_text().strip()
+            exec_cmd = exec_entry.get_text().strip()
+            icon = icon_entry.get_text().strip()
+            
+            if name and exec_cmd:
+                # Remove old favorite
+                if 'favorites' in self.config and fav_original in self.config['favorites']:
+                    self.config['favorites'].remove(fav_original)
+                
+                # Add updated favorite
+                fav_updated = {
+                    'name': name,
+                    'exec': exec_cmd,
+                    'icon': icon if icon else 'application-x-executable'
+                }
+                
+                if 'favorites' not in self.config:
+                    self.config['favorites'] = []
+                
+                self.config['favorites'].append(fav_updated)
+                self.config_manager.save_config(self.config)
+                self.load_favorites_list()
+                print(f"Favorite updated: {fav_updated}")
+        
+        dialog.destroy()            
         
     def get_desktop_files(self):
         """Get list of .desktop files from the system"""
@@ -1058,23 +1189,20 @@ class ConfigWindow(Gtk.Window):
             
             dialog.destroy()
         
-    def on_tint2_toggled(self, checkbox):
-        """Manejar el toggle del checkbox de Tint2"""
-        if 'tray' not in self.config:
-            self.config['tray'] = {}
-        self.config['tray']['use_tint2'] = checkbox.get_active()
-        self.config_manager.save_config(self.config)
-        self.update_tray_widgets_sensitivity()
-    
+
     def update_tray_widgets_sensitivity(self):
-        """Actualizar la sensibilidad de los widgets según el checkbox de Tint2"""
-        use_tint2 = self.config.get('tray', {}).get('use_tint2', False)
+        """Actualizar la visibilidad de los widgets según el tipo de tray seleccionado"""
+        tray_type = self.config.get('tray', {}).get('type', 'jwm')
         
-        # Si usa Tint2, deshabilitar JWM y viceversa
-        self.jwm_label.set_sensitive(not use_tint2)
-        self.entry_jwmrc_tray.set_sensitive(not use_tint2)
-        self.tint2_label.set_sensitive(use_tint2)
-        self.entry_tint2rc.set_sensitive(use_tint2)  
+        # Mostrar solo la configuración correspondiente al tipo seleccionado
+        self.jwm_label.set_visible(tray_type == 'jwm')
+        self.entry_jwmrc_tray.set_visible(tray_type == 'jwm')
+        
+        self.tint2_label.set_visible(tray_type == 'tint2')
+        self.entry_tint2rc.set_visible(tray_type == 'tint2')
+        
+        self.xfce_label.set_visible(tray_type == 'xfce')
+        self.entry_xfce_panel.set_visible(tray_type == 'xfce')    
         
     def on_search_engine_changed(self, combobox):
         """Manejar el cambio de motor de búsqueda"""

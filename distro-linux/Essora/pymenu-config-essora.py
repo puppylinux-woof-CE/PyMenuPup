@@ -701,10 +701,12 @@ class ConfigWindow(Gtk.Window):
         icon_label = Gtk.Label(label=icon_text)
         hbox.pack_start(icon_label, False, False, 0)
         
-        # Nombre del favorito
-        name_label = Gtk.Label(label=name)
-        name_label.set_halign(Gtk.Align.START)
-        hbox.pack_start(name_label, True, True, 0)
+        # ✅ CORRECTO: Botón clickeable para editar
+        name_button = Gtk.Button(label=name)
+        name_button.set_relief(Gtk.ReliefStyle.NONE)
+        name_button.set_halign(Gtk.Align.START)
+        name_button.connect("clicked", self.on_edit_favorite_clicked, fav)
+        hbox.pack_start(name_button, True, True, 0)
         
         # Comando (truncado)
         cmd_preview = exec_cmd[:30] + "..." if len(exec_cmd) > 30 else exec_cmd
@@ -720,7 +722,93 @@ class ConfigWindow(Gtk.Window):
         
         row.add(hbox)
         return row
-    
+        
+    def on_edit_favorite_clicked(self, button, fav_original):
+        """Mostrar diálogo para editar un favorito existente"""
+        dialog = Gtk.Dialog(
+            title=TR.get('Edit Favorite', 'Edit Favorite'),
+            parent=self,
+            flags=0
+        )
+        dialog.add_buttons(
+            TR['Cancel'], Gtk.ResponseType.CANCEL,
+            TR.get('Save', 'Save'), Gtk.ResponseType.OK
+        )
+        dialog.set_default_size(500, 300)
+        
+        content = dialog.get_content_area()
+        content.set_spacing(10)
+        content.set_border_width(10)
+        
+        # Nombre
+        content.pack_start(Gtk.Label(label=TR.get('Name:', 'Name:'), halign=Gtk.Align.START), False, False, 0)
+        name_entry = Gtk.Entry()
+        name_entry.set_text(fav_original.get('name', ''))
+        content.pack_start(name_entry, False, False, 0)
+        
+        # Comando con botón de explorar
+        content.pack_start(Gtk.Label(label=TR.get('Command:', 'Command:'), halign=Gtk.Align.START), False, False, 0)
+        
+        cmd_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        exec_entry = Gtk.Entry()
+        exec_entry.set_text(fav_original.get('exec', ''))
+        cmd_hbox.pack_start(exec_entry, True, True, 0)
+        
+        # ✅ NUEVO: Botón para explorar comando
+        cmd_browse_button = Gtk.Button(label="📂")
+        cmd_browse_button.set_tooltip_text(TR.get('Browse command', 'Browse command'))
+        cmd_browse_button.connect("clicked", self.on_browse_file, exec_entry, TR.get('Select command', 'Select command'))
+        cmd_hbox.pack_start(cmd_browse_button, False, False, 0)
+        
+        content.pack_start(cmd_hbox, False, False, 0)
+        
+        # Ícono con botones de explorar
+        content.pack_start(Gtk.Label(label=TR.get('Icon (optional):', 'Icon (optional):'), halign=Gtk.Align.START), False, False, 0)
+        
+        icon_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        
+        icon_entry = Gtk.Entry()
+        icon_entry.set_text(fav_original.get('icon', ''))
+        icon_hbox.pack_start(icon_entry, True, True, 0)
+        
+        # Botón explorar ícono
+        icon_browse_button = Gtk.Button(label="📂")
+        icon_browse_button.set_tooltip_text(TR.get('Browse icon', 'Browse icon'))
+        icon_browse_button.connect("clicked", self.on_browse_icon_clicked, icon_entry)
+        icon_hbox.pack_start(icon_browse_button, False, False, 0)
+        
+        content.pack_start(icon_hbox, False, False, 0)
+        
+        dialog.show_all()
+        response = dialog.run()
+        
+        if response == Gtk.ResponseType.OK:
+            name = name_entry.get_text().strip()
+            exec_cmd = exec_entry.get_text().strip()
+            icon = icon_entry.get_text().strip()
+            
+            if name and exec_cmd:
+                # Remover favorito viejo
+                if 'favorites' in self.config and fav_original in self.config['favorites']:
+                    self.config['favorites'].remove(fav_original)
+                
+                # Agregar favorito actualizado
+                fav_updated = {
+                    'name': name,
+                    'exec': exec_cmd,
+                    'icon': icon if icon else 'application-x-executable'
+                }
+                
+                if 'favorites' not in self.config:
+                    self.config['favorites'] = []
+                
+                self.config['favorites'].append(fav_updated)
+                self.config_manager.save_config(self.config)
+                self.load_favorites_list()
+                print(f"Favorito actualizado: {fav_updated}")
+        
+        dialog.destroy()        
+        
     def on_add_favorite_clicked(self, button):
         """Mostrar diálogo para agregar un nuevo favorito"""
         dialog = Gtk.Dialog(
@@ -821,11 +909,23 @@ class ConfigWindow(Gtk.Window):
         cmd_name_entry.set_placeholder_text(TR.get('Favorite name', 'Favorite name'))
         cmd_box.pack_start(cmd_name_entry, False, False, 0)
         
-        # Comando
+        # Comando con botón de explorar
         cmd_box.pack_start(Gtk.Label(label=TR.get('Command:', 'Command:'), halign=Gtk.Align.START), False, False, 0)
+        
+        #NUEVO: Caja horizontal para comando + botón explorar
+        cmd_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        
         cmd_exec_entry = Gtk.Entry()
         cmd_exec_entry.set_placeholder_text(TR.get('Command to execute', 'Command to execute'))
-        cmd_box.pack_start(cmd_exec_entry, False, False, 0)
+        cmd_hbox.pack_start(cmd_exec_entry, True, True, 0)
+        
+        # Botón explorar comando
+        cmd_browse_button = Gtk.Button(label="📂")
+        cmd_browse_button.set_tooltip_text(TR.get('Browse command', 'Browse command'))
+        cmd_browse_button.connect("clicked", self.on_browse_file, cmd_exec_entry, TR.get('Select command', 'Select command'))
+        cmd_hbox.pack_start(cmd_browse_button, False, False, 0)
+        
+        cmd_box.pack_start(cmd_hbox, False, False, 0)
         
         # Ícono con botón de explorar
         cmd_box.pack_start(Gtk.Label(label=TR.get('Icon (optional):', 'Icon (optional):'), halign=Gtk.Align.START), False, False, 0)
@@ -914,7 +1014,95 @@ class ConfigWindow(Gtk.Window):
                     del self.config['favorites'][i]
                     self.config_manager.save_config(self.config)
                     self.load_favorites_list()
-                    break        
+                    break 
+
+    def on_edit_favorite_clicked(self, button, fav_original):
+        """Mostrar diálogo para editar un favorito existente"""
+        dialog = Gtk.Dialog(
+            title=TR.get('Edit Favorite', 'Edit Favorite'),
+            parent=self,
+            flags=0
+        )
+        dialog.add_buttons(
+            TR['Cancel'], Gtk.ResponseType.CANCEL,
+            TR.get('Save', 'Save'), Gtk.ResponseType.OK
+        )
+        dialog.set_default_size(500, 300)
+        
+        content = dialog.get_content_area()
+        content.set_spacing(10)
+        content.set_border_width(10)
+        
+        # Nombre
+        content.pack_start(Gtk.Label(label=TR.get('Name:', 'Name:'), halign=Gtk.Align.START), False, False, 0)
+        name_entry = Gtk.Entry()
+        name_entry.set_text(fav_original.get('name', ''))
+        content.pack_start(name_entry, False, False, 0)
+        
+        # Comando con botón de explorar
+        content.pack_start(Gtk.Label(label=TR.get('Command:', 'Command:'), halign=Gtk.Align.START), False, False, 0)
+        
+        cmd_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        exec_entry = Gtk.Entry()
+        exec_entry.set_text(fav_original.get('exec', ''))
+        cmd_hbox.pack_start(exec_entry, True, True, 0)
+        
+        # Botón para explorar comando
+        cmd_browse_button = Gtk.Button(label="📂")
+        cmd_browse_button.set_tooltip_text(TR.get('Browse command', 'Browse command'))
+        cmd_browse_button.connect("clicked", self.on_browse_file, exec_entry, TR.get('Select command', 'Select command'))
+        cmd_hbox.pack_start(cmd_browse_button, False, False, 0)
+        
+        content.pack_start(cmd_hbox, False, False, 0)
+        
+        # Ícono con botón de explorar
+        content.pack_start(Gtk.Label(label=TR.get('Icon (optional):', 'Icon (optional):'), halign=Gtk.Align.START), False, False, 0)
+        
+        icon_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        
+        icon_entry = Gtk.Entry()
+        icon_entry.set_text(fav_original.get('icon', ''))
+        icon_hbox.pack_start(icon_entry, True, True, 0)
+        
+        # Botón explorar ícono
+        icon_browse_button = Gtk.Button(label="📂")
+        icon_browse_button.set_tooltip_text(TR.get('Browse icon', 'Browse icon'))
+        icon_browse_button.connect("clicked", self.on_browse_icon_clicked, icon_entry)
+        icon_hbox.pack_start(icon_browse_button, False, False, 0)
+        
+        # ✅ YA NO HAY BOTÓN 🗂️ AQUÍ
+        
+        content.pack_start(icon_hbox, False, False, 0)
+        
+        dialog.show_all()
+        response = dialog.run()
+        
+        if response == Gtk.ResponseType.OK:
+            name = name_entry.get_text().strip()
+            exec_cmd = exec_entry.get_text().strip()
+            icon = icon_entry.get_text().strip()
+            
+            if name and exec_cmd:
+                # Remover favorito viejo
+                if 'favorites' in self.config and fav_original in self.config['favorites']:
+                    self.config['favorites'].remove(fav_original)
+                
+                # Agregar favorito actualizado
+                fav_updated = {
+                    'name': name,
+                    'exec': exec_cmd,
+                    'icon': icon if icon else 'application-x-executable'
+                }
+                
+                if 'favorites' not in self.config:
+                    self.config['favorites'] = []
+                
+                self.config['favorites'].append(fav_updated)
+                self.config_manager.save_config(self.config)
+                self.load_favorites_list()
+                print(f"Favorito actualizado: {fav_updated}")
+        
+        dialog.destroy()                         
     
     def get_desktop_files(self):
         """Obtener lista de archivos .desktop del sistema"""

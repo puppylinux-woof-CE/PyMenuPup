@@ -28,9 +28,11 @@ entries = entradas
 Window Manager detected: = Gestor de ventanas detectado:
 Using user config = Usando configuración del usuario
 Automatically using Tint2 config = Usando configuración de Tint2 automáticamente
+Automatically using XFCE config = Usando configuración XFCE automáticamente
 Tray config detected from = Configuración de bandeja detectada desde
 Now monitoring JWM file for changes: = Monitoreando cambios en archivo JWM:
 Folder created: = Carpeta creada:
+File /etc/windowmanager not found, assuming JWM = Archivo /etc/windowmanager no encontrado, asumiendo JWM
 Mouse entered applications area = El ratón entró en el área de aplicaciones
 Using GTK theme colors = Usando colores del tema GTK
 
@@ -51,6 +53,7 @@ Create desktop shortcut = Crear acceso en escritorio
 Acceso directo creado: = Acceso directo creado:
 Comando validado: = Comando validado:
 Error creando acceso directo: = Error creando acceso directo:
+Open directory = Abrir directorio
 
 # === User Directories (XDG) ===
 Home = Inicio
@@ -97,6 +100,7 @@ JWM Tray config: = Configuración de JWM Tray:
 Tint2 config: = Configuración de Tint2:
 Use Tint2 (instead of JWM): = Usar Tint2 (en lugar de JWM):
 Search engine: = Motor de búsqueda:
+Hide favorites = Ocultar favoritos
 
 # === Opciones de Ventana ===
 Window width: = Ancho de ventana:
@@ -167,6 +171,13 @@ Fun = Entretenimiento
 Help = Ayuda
 Rectify = Rectificar
 
+# === Bandeja/Tray ===
+Tray/Panel type: = Tipo de bandeja/panel:
+JWM Tray = Bandeja JWM
+Tint2 Panel = Panel Tint2
+XFCE Panel = Panel XFCE
+XFCE panel config: = Configuración de panel XFCE:
+
 # === FAVORITOS ===
 Favorites = Favoritos
 Add favorite = Agregar favorito
@@ -199,3 +210,8 @@ Select profile manager = Seleccionar gestor de perfil
 Select shutdown command = Seleccionar comando de apagado
 Select JWM config = Seleccionar configuración JWM
 Select Tint2 config = Seleccionar configuración Tint2
+Select XFCE panel config = Seleccionar configuración de panel XFCE
+Edit Favorite = Editar Favorito
+Edit = Editar
+Browse command = Explorar comando
+Select command = Seleccionar comando

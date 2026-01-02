@@ -147,7 +147,12 @@ class TranslationManager:
         'Documents': 'Documents',
         'Open directory:': 'Open directory:',
         
-        # AÑADIDAS LAS NUEVAS TRADUCCIONES:
+        'Tray/Panel type:': 'Tray/Panel type:',
+        'JWM Tray': 'JWM Tray',
+        'Tint2 Panel': 'Tint2 Panel',
+        'XFCE Panel': 'XFCE Panel',
+        'XFCE panel config:': 'XFCE panel config:',
+        'Select XFCE panel config': 'Select XFCE panel config',
         'Favorites': 'Favorites',
         'Add favorite': 'Add favorite',
         'No favorites yet. Click here to add one.': 'No favorites yet. Click here to add one.',
@@ -182,6 +187,10 @@ class TranslationManager:
         'Search bar container:': 'Search bar container:',
         'In window': 'In window',
         'In applications column': 'In applications column',
+        'Edit Favorite': 'Edit Favorite',
+        'Edit': 'Edit',
+        'Browse command': 'Browse command',
+        'Select command': 'Select command',
     }
     
     def __init__(self, locale_paths=None, app_name=None):

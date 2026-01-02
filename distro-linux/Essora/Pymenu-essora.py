@@ -1308,23 +1308,23 @@ class ArcMenuLauncher(Gtk.Window):
             places_box.pack_start(profile_section, False, False, 5)
             places_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 5)
         
-        # 2. LUGARES DEL SISTEMA (Home, Downloads, etc.)
-        system_places = [
-            ('user-home', TR.get('Home', 'Home'), '~'),
-            ('folder-download', TR.get('DownloadsDir', 'Downloads'), f"~/{TR.get('DownloadsDir', 'Downloads')}"),
-            ('folder-music', TR.get('MusicDir', 'Music'), f"~/{TR.get('MusicDir', 'Music')}"),
-            ('folder-documents', TR.get('DocumentsDir', 'Documents'), f"~/{TR.get('DocumentsDir', 'Documents')}"),
-            ('folder-pictures', TR.get('PicturesDir', 'Pictures'), f"~/{TR.get('PicturesDir', 'Pictures')}"),
-            ('folder-videos', TR.get('VideosDir', 'Videos'), f"~/{TR.get('VideosDir', 'Videos')}"),
-        ]
-        
         # Verificar si debemos mostrar los lugares del sistema
         hide_places = self.config['window'].get('hide_places', False)
         
+        # Fuente para los textos
+        font_desc = Pango.FontDescription(self.config['font']['family'])
+        font_desc.set_size(self.config['font'].get('size_categories', 12000))
+        
         if not hide_places:
-            # Fuente para los textos
-            font_desc = Pango.FontDescription(self.config['font']['family'])
-            font_desc.set_size(self.config['font'].get('size_categories', 12000))
+            # 2. LUGARES DEL SISTEMA (Home, Downloads, etc.)
+            system_places = [
+                ('user-home', TR.get('Home', 'Home'), '~'),
+                ('folder-download', TR.get('DownloadsDir', 'Downloads'), f"~/{TR.get('DownloadsDir', 'Downloads')}"),
+                ('folder-music', TR.get('MusicDir', 'Music'), f"~/{TR.get('MusicDir', 'Music')}"),
+                ('folder-documents', TR.get('DocumentsDir', 'Documents'), f"~/{TR.get('DocumentsDir', 'Documents')}"),
+                ('folder-pictures', TR.get('PicturesDir', 'Pictures'), f"~/{TR.get('PicturesDir', 'Pictures')}"),
+                ('folder-videos', TR.get('VideosDir', 'Videos'), f"~/{TR.get('VideosDir', 'Videos')}"),
+            ]
             
             for icon_name, label, path in system_places:
                 btn = Gtk.Button()
@@ -1361,12 +1361,18 @@ class ArcMenuLauncher(Gtk.Window):
             # ===== AGREGAR FAVORITOS =====
             favorites = self.config.get('favorites', [])
             if favorites:
+                # Crear un contenedor especial para toda la sección de favoritos
+                favorites_section_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+                
                 # Título de favoritos
                 fav_title_label = Gtk.Label(label="⭐ " + TR.get('Favorites', 'Favorites'))
                 fav_title_label.set_halign(Gtk.Align.START)
                 fav_title_label.set_margin_start(5)
                 fav_title_label.override_font(font_desc)
-                places_box.pack_start(fav_title_label, False, False, 2)
+                favorites_section_box.pack_start(fav_title_label, False, False, 2)
+                
+                # Contenedor para los botones de favoritos
+                favorites_buttons_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
                 
                 # Agregar cada favorito
                 for fav in favorites:
@@ -1407,8 +1413,8 @@ class ArcMenuLauncher(Gtk.Window):
                     
                     fav_btn.add(hbox)
                     
-                    # FUNCIÓN CORREGIDA para ejecutar favoritos
-                    def launch_favorite(btn, cmd=fav_exec, name=fav_name):
+                    # Capturar comando y nombre directamente
+                    def launch_favorite(btn, cmd=fav_exec, name=fav_name, icon=fav_icon):
                         try:
                             GLib.timeout_add(50, lambda: Gtk.main_quit())
                             
@@ -1416,11 +1422,9 @@ class ArcMenuLauncher(Gtk.Window):
                             cmd_clean = cmd.strip()
                             
                             if cmd_clean.startswith('gtk-launch'):
-                                # Extraer nombre de la aplicación
                                 parts = cmd_clean.split()
                                 if len(parts) >= 2:
                                     app_name = parts[1]
-                                    # Buscar archivo .desktop
                                     desktop_paths = [
                                         "/usr/share/applications/",
                                         "/usr/local/share/applications/",
@@ -1430,7 +1434,6 @@ class ArcMenuLauncher(Gtk.Window):
                                     for path in desktop_paths:
                                         desktop_file = os.path.join(path, app_name + '.desktop')
                                         if os.path.exists(desktop_file):
-                                            # Usar xdg-open
                                             subprocess.Popen(["xdg-open", desktop_file])
                                             return
                             
@@ -1448,7 +1451,20 @@ class ArcMenuLauncher(Gtk.Window):
                             print(f"Error launching favorite {name}: {e}")
                     
                     fav_btn.connect("clicked", launch_favorite)
-                    places_box.pack_start(fav_btn, False, False, 0)
+                    favorites_buttons_box.pack_start(fav_btn, False, False, 0)
+                
+                favorites_section_box.pack_start(favorites_buttons_box, False, False, 0)
+                
+                # Crear EventBox para toda la sección de favoritos
+                favorites_event_box = Gtk.EventBox()
+                favorites_event_box.add(favorites_section_box)
+                favorites_event_box.add_events(Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
+                
+                # Conectar eventos de hover a TODA la sección de favoritos
+                favorites_event_box.connect("enter-notify-event", self.on_favorites_section_hover_enter)
+                favorites_event_box.connect("leave-notify-event", self.on_favorites_section_hover_leave)
+                
+                places_box.pack_start(favorites_event_box, False, False, 0)
             else:
                 # Mostrar mensaje si no hay favoritos
                 no_fav_label = Gtk.Label(label=TR.get('No favorites added', 'No favorites added'))
@@ -1682,6 +1698,80 @@ class ArcMenuLauncher(Gtk.Window):
         monitor.connect("changed", on_file_changed)
         
         return header_box
+        
+    def get_favorites(self):
+        """Lee los favoritos reales del archivo JSON"""
+        if os.path.exists(CONFIG_FILE):
+            try:
+                with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                    return config.get('favorites', [])
+            except Exception as e:
+                print(f"Error cargando favoritos: {e}")
+        return []
+    
+    def on_favorites_section_hover_enter(self, widget, event):
+        """Muestra los favoritos en la columna de aplicaciones al pasar el mouse sobre la sección"""
+        print(f"🭐 Mouse entró en sección de favoritos. Mostrando {len(self.get_favorites())} favoritos...")
+        
+        # Guardar la categoría actual antes de cambiar
+        self.previous_category = self.current_category
+        self.showing_favorites = True
+        
+        # Obtener favoritos
+        favorites = self.get_favorites()
+        if not favorites:
+            return False
+        
+        # Limpiar la columna de aplicaciones
+        if self.apps_flowbox:
+            for child in self.apps_flowbox.get_children():
+                child.destroy()
+        
+        # Convertir favoritos al formato de aplicación
+        fav_apps = []
+        for fav in favorites:
+            fav_app = {
+                'Name': fav.get('name', 'App'),
+                'Exec': fav.get('exec', ''),
+                'Icon': fav.get('icon', 'star'),
+                'Comment': fav.get('name', 'App'),
+                'Terminal': False,
+                'Categories': ['Favorites']
+            }
+            fav_apps.append(fav_app)
+        
+        # Mostrar favoritos en la columna de aplicaciones
+        for app_info in fav_apps:
+            button = self.create_app_button(app_info)
+            self.apps_flowbox.add(button)
+        
+        self.apps_flowbox.show_all()
+        return False
+    
+    def on_favorites_section_hover_leave(self, widget, event):
+        """Manejar salida de la sección de favoritos"""
+        print("Mouse salió de sección de favoritos - esperando...")
+        
+        # Programar limpieza automática después de 2 segundos
+        if hasattr(self, 'favorites_cleanup_timeout'):
+            GLib.source_remove(self.favorites_cleanup_timeout)
+        
+        self.favorites_cleanup_timeout = GLib.timeout_add(2000, self._cleanup_favorites_state)
+        
+        return False
+    
+    def _cleanup_favorites_state(self):
+        """Limpiar el estado de favoritos y restaurar categoría anterior"""
+        if hasattr(self, 'showing_favorites') and self.showing_favorites:
+            self.showing_favorites = False
+            
+            # Restaurar categoría anterior
+            if hasattr(self, 'previous_category'):
+                self.show_category_applications(self.previous_category)
+                delattr(self, 'previous_category')
+        
+        return False        
 
     def create_categories_sidebar(self):
         """Create categories sidebar with improved hover functionality"""

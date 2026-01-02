@@ -1,6 +1,6 @@
 # ============================================
 # PyMenuPup - Translation Template
-# Version: 1.2
+# Version: 1.1
 # Instructions: Copy this file as 'your_language_code.lang' 
 # (e.g., fr.lang, de.lang) and translate the text after the '='.
 # ============================================
@@ -30,9 +30,11 @@ entries =
 Window Manager detected: = 
 Using user config = 
 Automatically using Tint2 config = 
+Automatically using XFCE config = 
 Tray config detected from = 
 Now monitoring JWM file for changes: = 
 Folder created: = 
+File /etc/windowmanager not found, assuming JWM = 
 Mouse entered applications area = 
 Using GTK theme colors = 
 
@@ -46,21 +48,15 @@ Select avatar =
 Terminal = 
 Terminal emulator = 
 File Manager = 
-File manager = 
 Web browser = 
 Run = 
 Create desktop shortcut = 
 Acceso directo creado: = 
 Comando validado: = 
 Error creando acceso directo: = 
+Open directory = 
 
 # === User Directories (XDG) ===
-Home = 
-Downloads = 
-Music = 
-Videos = 
-Pictures = 
-Documents = 
 DownloadsDir = 
 MusicDir = 
 VideosDir = 
@@ -71,7 +67,6 @@ Open directory: =
 # === Social Networks ===
 Social Networks = 
 Hide social networks = 
-Hide social networks: = 
 
 # === GUI Configuration Settings ===
 General = 
@@ -99,54 +94,7 @@ JWM Tray config: =
 Tint2 config: = 
 Use Tint2 (instead of JWM): = 
 Search engine: = 
-
-# === Window Options ===
-Window width: = 
-Window height: = 
-Icon size: = 
-Category icon size: = 
-Profile pic size: = 
-Profile pic shape: = 
-Show window frame: = 
-(No transparency) = 
-
-# === Visibility Options ===
-Hide header: = 
-Hide profile picture: = 
-Hide quick access: = 
-Hide categories text: = 
-Hide app names: = 
-Hide OS name: = 
-Hide kernel: = 
-Hide hostname: = 
-Hide places sidebar: = 
-(Hides both places and favorites) = 
-Hide favorites only: = 
-(Show places but hide favorites) = 
-Show profile in places sidebar: = 
-(Instead of header) = 
-
-# === Header Design ===
-Header layout: = 
-Header text alignment: = 
-Avatar left = 
-Avatar right = 
-Avatar center = 
-
-# === Shapes and Positions ===
-square = 
-circular = 
-top = 
-bottom = 
-center = 
-left = 
-right = 
-
-# === Alignment ===
-Horizontal alignment: = 
-Search bar container: =
-In window = 
-In applications column =
+Hide favorites = 
 
 # === Categories ===
 Excluded categories: = 
@@ -167,15 +115,25 @@ Internet =
 Multimedia = 
 Fun = 
 Help = 
-Rectify = 
+Rectify =
 
-# === FAVORITES ===
+# === Tray/Panel ===
+Tray/Panel type: = 
+JWM Tray = 
+Tint2 Panel = 
+XFCE Panel = 
+XFCE panel config: = 
+
+# === Favorites Management ===
 Favorites = 
 Add favorite = 
 No favorites yet. Click here to add one. = 
 Add Favorite = 
+Edit Favorite = 
 Add = 
+Edit = 
 Select an application: = 
+Search applications... = 
 Application = 
 Select a directory: = 
 Path to directory = 
@@ -185,6 +143,8 @@ Name: =
 Favorite name = 
 Command: = 
 Command to execute = 
+Browse command = 
+Select command = 
 Icon (optional): = 
 Icon name or path = 
 Browse icon = 
@@ -193,11 +153,12 @@ Command =
 Select Directory = 
 Select Icon = 
 Image files = 
-All files = 
+All files =
 
-# === Configuration Messages ===
+# === Configuration Dialogs ===
 Select profile picture = 
 Select profile manager = 
 Select shutdown command = 
 Select JWM config = 
-Select Tint2 config =
+Select Tint2 config = 
+Select XFCE panel config =
