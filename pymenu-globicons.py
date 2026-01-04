@@ -90,7 +90,7 @@ class ConfigManager:
                 "hide_places": False,
                 "hide_favorites": False, 
                 "search_bar_position": "bottom",
-                "search_bar_container": "window",
+                "search_bar_container": "apps_column",
                 "hide_quick_access": True,
                 "hide_social_networks": True,
                 "halign": "left",
@@ -134,7 +134,9 @@ class ConfigManager:
                 "profile_manager": "",
                 "shutdown_cmd": "",
                 "jwmrc_tray": "/root/.jwmrc-tray",          
-                "tint2rc": "/root/.config/tint2/tint2rc"    
+                "tint2rc": "/root/.config/tint2/tint2rc",
+                "xfce_panel": "/root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml",    
+                "lxde_panel": "/root/.config/lxpanel/LXDE/panels/panel"      
             },
             "search_engine": {
                 "engine": "duckduckgo"
@@ -194,6 +196,8 @@ def detect_window_manager():
                 return 'openbox'
             elif 'xfce' in wm_content or 'xfce4' in wm_content:
                 return 'xfce'
+            elif 'lxde' in wm_content or 'lxpanel' in wm_content:
+                return 'lxde'
     except FileNotFoundError:
         print(f"{TR['File /etc/windowmanager not found, assuming JWM']}")
     except Exception as e:
@@ -278,7 +282,7 @@ class JWMMenuParser:
         self.tray_config = None
         
     def parse_tray_config(self):
-        """Parse tint2, XFCE or JWM config based on user preference to get tray position and size"""
+        """Parse tint2, XFCE, LXDE or JWM config based on user preference to get tray position and size"""
         tray_info = {
             'height': 30,
             'width': 1300,
@@ -288,7 +292,7 @@ class JWMMenuParser:
             'autohide': 'off',
             'source': 'default'
         }
-    
+        
         # Leer preferencia de configuración desde el ConfigManager
         config_manager = ConfigManager()
         config = config_manager.config
@@ -300,16 +304,24 @@ class JWMMenuParser:
         if detected_wm == 'openbox':
             use_tint2 = True
             use_xfce = False
+            use_lxde = False
             print(f"🔍 {TR['Window Manager detected:']} Openbox → {TR['Automatically using Tint2 config']}")
         elif detected_wm == 'xfce':
             use_tint2 = False
             use_xfce = True
+            use_lxde = False
             print(f"🔍 {TR['Window Manager detected:']} XFCE → {TR['Automatically using XFCE config']}")
+        elif detected_wm == 'lxde':
+            use_tint2 = False
+            use_xfce = False
+            use_lxde = True
+            print(f"🔍 {TR['Window Manager detected:']} LXDE → {TR['Automatically using LXDE config']}")
         else:
             # Si es JWM, usar la preferencia del usuario del JSON
             use_tint2 = config.get('tray', {}).get('use_tint2', False)
             use_xfce = config.get('tray', {}).get('use_xfce', False)
-            print(f"🔍 Window Manager detectado: JWM → Usando configuración del usuario (use_tint2={use_tint2}, use_xfce={use_xfce})")
+            use_lxde = config.get('tray', {}).get('use_lxde', False)
+            print(f"🔍 Window Manager detectado: JWM → Usando configuración del usuario (use_tint2={use_tint2}, use_xfce={use_xfce}, use_lxde={use_lxde})")
         
         # PRIMERO: Intentar con XFCE si está configurado o detectado
         if use_xfce or detected_wm == 'xfce':
@@ -321,7 +333,17 @@ class JWMMenuParser:
                 self.tray_config = tray_info
                 return tray_info
         
-        # SEGUNDO: Intentar con Tint2 si está configurado
+        # SEGUNDO: Intentar con LXDE si está configurado o detectado
+        if use_lxde or detected_wm == 'lxde':
+            lxde_config = self.parse_lxde_panel_config()
+            if lxde_config:
+                tray_info.update(lxde_config)
+                tray_info['source'] = 'lxde'
+                print(f"✅ Configuración de panel detectada desde LXDE: {tray_info}")
+                self.tray_config = tray_info
+                return tray_info
+        
+        # TERCERO: Intentar con Tint2 si está configurado
         if use_tint2 or detected_wm == 'openbox':
             tint2_config = config.get('paths', {}).get('tint2rc', os.path.expanduser("/usr/share/tint2/tint2/tint2rc"))
             tint2_config = os.path.expanduser(tint2_config)
@@ -585,6 +607,74 @@ class JWMMenuParser:
                 paths.append(path)
         
         return paths
+        
+    def parse_lxde_panel_config(self):
+        """Parse LXDE panel configuration to get position and size"""
+        lxde_config = {}
+        
+        # Rutas comunes de configuración de LXDE
+        lxde_config_paths = [
+            os.path.expanduser("~/.config/lxpanel/LXDE/panels/panel"),
+            "/etc/xdg/lxpanel/LXDE/panels/panel",
+            "/usr/share/lxpanel/profile/LXDE/panels/panel"
+        ]
+        
+        for config_file in lxde_config_paths:
+            if os.path.exists(config_file):
+                try:
+                    with open(config_file, 'r') as f:
+                        lines = f.readlines()
+                        
+                        for line in lines:
+                            line = line.strip()
+                            
+                            # Buscar configuración Global
+                            if line.startswith('edge='):
+                                edge = line.split('=')[1].strip()
+                                lxde_config['valign'] = edge  # top/bottom
+                            
+                            elif line.startswith('allign='):
+                                align = line.split('=')[1].strip()
+                                lxde_config['halign'] = align  # left/center/right
+                            
+                            elif line.startswith('margin='):
+                                try:
+                                    margin = int(line.split('=')[1].strip())
+                                    lxde_config['margin'] = margin
+                                except ValueError:
+                                    pass
+                            
+                            elif line.startswith('width='):
+                                try:
+                                    width = int(line.split('=')[1].strip())
+                                    lxde_config['width'] = width
+                                except ValueError:
+                                    pass
+                            
+                            elif line.startswith('height='):
+                                try:
+                                    height = int(line.split('=')[1].strip())
+                                    lxde_config['height'] = height
+                                except ValueError:
+                                    pass
+                    
+                    # Establecer valores por defecto si no se encontraron
+                    if 'height' not in lxde_config:
+                        lxde_config['height'] = 30
+                    if 'width' not in lxde_config:
+                        lxde_config['width'] = 1300
+                    if 'valign' not in lxde_config:
+                        lxde_config['valign'] = 'bottom'
+                    if 'halign' not in lxde_config:
+                        lxde_config['halign'] = 'center'
+                    
+                    return lxde_config
+                        
+                except Exception as e:
+                    print(f"❌ Error parsing LXDE config {config_file}: {e}")
+                    continue
+        
+        return None        
     
     def extract_programs_from_menu(self, menu_element):
         """Extract program entries from a menu element"""

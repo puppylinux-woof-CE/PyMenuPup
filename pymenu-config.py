@@ -47,7 +47,7 @@ class ConfigManager:
                 "hide_places": False,
                 "hide_favorites": False, 
                 "search_bar_position": "bottom",
-                "search_bar_container": "window",
+                "search_bar_container": "apps_column",
                 "hide_quick_access": True,
                 "hide_social_networks": True,
                 "halign": "left",
@@ -92,13 +92,14 @@ class ConfigManager:
                 "shutdown_cmd": "",
                 "jwmrc_tray": "/root/.jwmrc-tray",          
                 "tint2rc": "/root/.config/tint2/tint2rc",
-                "xfce_panel": "/root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml"
+                "xfce_panel": "/root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml",
+			    "lxde_panel": "/root/.config/lxpanel/LXDE/panels/panel"
             },
             "search_engine": {
                 "engine": "duckduckgo"
             },
             "tray": {
-                "type": "jwm"  # "jwm", "tint2", o "xfce"
+                "type": "jwm"  
             },
             "categories": {
                 "excluded": []
@@ -560,12 +561,17 @@ class ConfigWindow(Gtk.Window):
             
             grid.attach(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), 0, 3, 3, 1)
             
-            # --- Configuración de Tray (unificada) ---
             grid.attach(Gtk.Label(label=TR['Tray/Panel type:']), 0, 4, 1, 1)
             tray_type_combo = Gtk.ComboBoxText()
             tray_type_combo.append("jwm", TR['JWM Tray'])
             tray_type_combo.append("tint2", TR['Tint2 Panel'])
             tray_type_combo.append("xfce", TR['XFCE Panel'])
+            tray_type_combo.append("lxde", TR['LXDE Panel'])  # ← NUEVO
+            
+            current_tray_type = self.config.get('tray', {}).get('type', 'jwm')
+            tray_type_combo.set_active_id(current_tray_type)
+            tray_type_combo.connect("changed", self.on_tray_type_changed)
+            grid.attach(tray_type_combo, 1, 4, 1, 1)
             
             current_tray_type = self.config.get('tray', {}).get('type', 'jwm')
             tray_type_combo.set_active_id(current_tray_type)
@@ -609,6 +615,17 @@ class ConfigWindow(Gtk.Window):
             browse_xfce.connect("clicked", self.on_browse_file, self.entry_xfce_panel, TR['Select XFCE panel config'])
             tray_grid.attach(browse_xfce, 2, 2, 1, 1)
             
+            # LXDE Panel config (NUEVO)
+            self.lxde_label = Gtk.Label(label=TR['LXDE panel config:'])
+            tray_grid.attach(self.lxde_label, 0, 3, 1, 1)  # Cambiar el índice según tu layout
+            self.entry_lxde_panel = Gtk.Entry()
+            self.entry_lxde_panel.set_text(self.config['paths'].get("lxde_panel", "/root/.config/lxpanel/LXDE/panels/panel"))
+            self.entry_lxde_panel.connect("changed", self.on_path_changed, "paths", "lxde_panel")
+            tray_grid.attach(self.entry_lxde_panel, 1, 3, 1, 1)
+            browse_lxde = Gtk.Button(label="...")
+            browse_lxde.connect("clicked", self.on_browse_file, self.entry_lxde_panel, TR['Select LXDE panel config'])
+            tray_grid.attach(browse_lxde, 2, 3, 1, 1)            
+            
             # Actualizar visibilidad inicial
             self.update_tray_widgets_sensitivity()
             
@@ -647,20 +664,21 @@ class ConfigWindow(Gtk.Window):
             return main_scrolled            
     
     def update_tray_widgets_sensitivity(self):
-        """Actualizar la sensibilidad de los widgets según los checkboxes"""
-        use_tint2 = self.config.get('tray', {}).get('use_tint2', False)
-        use_xfce = self.config.get('tray', {}).get('use_xfce', False)
+        """Actualizar la visibilidad de los widgets según el tipo de tray seleccionado"""
+        tray_type = self.config.get('tray', {}).get('type', 'jwm')
         
-        # Si usa Tint2, deshabilitar JWM y XFCE
-        self.jwm_label.set_sensitive(not use_tint2 and not use_xfce)
-        self.entry_jwmrc_tray.set_sensitive(not use_tint2 and not use_xfce)
+        # Mostrar solo la configuración correspondiente al tipo seleccionado
+        self.jwm_label.set_visible(tray_type == 'jwm')
+        self.entry_jwmrc_tray.set_visible(tray_type == 'jwm')
         
-        # Si usa XFCE, deshabilitar JWM y Tint2
-        self.tint2_label.set_sensitive(use_tint2 and not use_xfce)
-        self.entry_tint2rc.set_sensitive(use_tint2 and not use_xfce)
+        self.tint2_label.set_visible(tray_type == 'tint2')
+        self.entry_tint2rc.set_visible(tray_type == 'tint2')
         
-        self.xfce_label.set_sensitive(use_xfce)
-        self.entry_xfce_panel.set_sensitive(use_xfce) 
+        self.xfce_label.set_visible(tray_type == 'xfce')
+        self.entry_xfce_panel.set_visible(tray_type == 'xfce')
+        
+        self.lxde_label.set_visible(tray_type == 'lxde')        
+        self.entry_lxde_panel.set_visible(tray_type == 'lxde')  
         
     def on_tray_type_changed(self, combobox):
         """Manejar el cambio de tipo de tray"""
@@ -671,7 +689,7 @@ class ConfigWindow(Gtk.Window):
         
         self.config['tray']['type'] = tray_type
         self.config_manager.save_config(self.config)
-        self.update_tray_widgets_sensitivity()                
+        self.update_tray_widgets_sensitivity()               
         
     def load_favorites_list(self):
             """Load and display the current favorites list"""

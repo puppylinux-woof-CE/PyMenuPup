@@ -157,9 +157,9 @@ Select categories to hide from menu = Selecciona categorías para ocultar del me
 # === Nombres de Categorías ===
 Desktop = Escritorio
 System = Sistema
-Setup = Configuración
+Setup = Config
 Utility = Utilidad
-Filesystem = Sistema de archivos
+Filesystem = Archivos
 Graphic = Gráfico
 Document = Documentos
 Business = Negocios
@@ -167,7 +167,7 @@ Personal = Personal
 Network = Red
 Internet = Internet
 Multimedia = Multimedia
-Fun = Entretenimiento
+Fun = Juegos
 Help = Ayuda
 Rectify = Rectificar
 
@@ -177,6 +177,13 @@ JWM Tray = Bandeja JWM
 Tint2 Panel = Panel Tint2
 XFCE Panel = Panel XFCE
 XFCE panel config: = Configuración de panel XFCE:
+LXDE panel config: Configuración del panel LXDE
+LXDE Panel: Panel LXDE
+LXDE Panel = Panel LXDE
+LXDE panel config: = Configuración del panel LXDE:
+LXDE config: = Configuración LXDE:
+Select LXDE config = Seleccionar configuración LXDE
+
 
 # === FAVORITOS ===
 Favorites = Favoritos
