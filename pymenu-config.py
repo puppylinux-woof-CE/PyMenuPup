@@ -14,13 +14,18 @@ try:
     sys.path.insert(0, '/usr/local/bin')
     from pymenupuplang import TranslationManager
     TR = TranslationManager(app_name="pymenupup") 
-except:
-    # Si no existe pymenupuplang.py, usar inglés
+except Exception as e:
+    print(f"⚠️  pymenupuplang not found: {e}")
     class FallbackTranslator:
+        def __init__(self):
+            self.translations = {}  
+        
         def __getitem__(self, key):
             return key
+        
         def get(self, key, default=None):
             return default or key
+        
         def get_category_map(self):
             return {}
     
@@ -295,6 +300,7 @@ class ConfigWindow(Gtk.Window):
         grid.attach(hide_social_check, 1, 12, 1, 1)
         
         # ===== NUEVAS OPCIONES COMBINADAS =====
+# ===== NUEVAS OPCIONES COMBINADAS =====
         
         # Hide places sidebar
         places_label_text = TR['Hide places sidebar:'] + '\n' + TR['(Hides both places and favorites)']
@@ -332,48 +338,49 @@ class ConfigWindow(Gtk.Window):
         profile_in_places_check.connect("toggled", self.on_check_toggled, "window", "profile_in_places")
         grid.attach(profile_in_places_check, 1, 15, 1, 1)
 
-        # Icon size (FALTANTE - AGREGADA)
+        # Icon size
         grid.attach(Gtk.Label(label=TR['Icon size:']), 0, 16, 1, 1)
         icon_size_spin = Gtk.SpinButton.new_with_range(16, 64, 8)
         icon_size_spin.set_value(self.config['window'].get('icon_size', 32))
         icon_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "icon_size")
         grid.attach(icon_size_spin, 1, 16, 1, 1)
 
+        # Category icon size
         grid.attach(Gtk.Label(label=TR['Category icon size:']), 0, 17, 1, 1)
         category_icon_size_spin = Gtk.SpinButton.new_with_range(16, 64, 8)
         category_icon_size_spin.set_value(self.config['window'].get('category_icon_size', 24))
         category_icon_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "category_icon_size")
         grid.attach(category_icon_size_spin, 1, 17, 1, 1)
 
+        # Profile pic size
         grid.attach(Gtk.Label(label=TR['Profile pic size:']), 0, 18, 1, 1)
         profile_pic_size_spin = Gtk.SpinButton.new_with_range(64, 256, 8)
         profile_pic_size_spin.set_value(self.config['window'].get('profile_pic_size', 128))
         profile_pic_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "profile_pic_size")
         grid.attach(profile_pic_size_spin, 1, 18, 1, 1)
         
+        # Profile pic shape ✅ CORRECTO
         grid.attach(Gtk.Label(label=TR['Profile pic shape:']), 0, 19, 1, 1)    
-        combobox = Gtk.ComboBoxText()
-        combobox.append("square", TR.get('square', 'Cuadrada'))
-        combobox.append("circular", TR.get('circular', 'Circular'))       
+        shape_combo = Gtk.ComboBoxText()
+        shape_combo.append("square", TR['square'])
+        shape_combo.append("circular", TR['circular'])
         current_shape = self.config['window'].get('profile_pic_shape', 'square')
-        combobox.set_active_id(current_shape)
-        combobox.connect("changed", self.on_combobox_changed, 'window', 'profile_pic_shape')
-        grid.attach(combobox, 1, 19, 1, 1)
+        shape_combo.set_active_id(current_shape)
+        shape_combo.connect("changed", self.on_combobox_changed, 'window', 'profile_pic_shape')
+        grid.attach(shape_combo, 1, 19, 1, 1)
 
+        # Horizontal alignment ✅ AHORA ESTANDARIZADO
         grid.attach(Gtk.Label(label=TR['Horizontal alignment:']), 0, 20, 1, 1) 
         halign_combo = Gtk.ComboBoxText()
-        halign_options = ["center", "left", "right"]
-        for option in halign_options:
-            halign_combo.append_text(TR[option])
+        halign_combo.append("center", TR['center'])
+        halign_combo.append("left", TR['left'])
+        halign_combo.append("right", TR['right'])
         current_halign = self.config['window'].get('halign', 'center')
-        try:
-            index = halign_options.index(current_halign)
-            halign_combo.set_active(index)
-        except ValueError:
-            halign_combo.set_active(0)
-        halign_combo.connect("changed", self.on_combo_changed, "window", "halign")
+        halign_combo.set_active_id(current_halign)
+        halign_combo.connect("changed", self.on_combobox_changed, "window", "halign")
         grid.attach(halign_combo, 1, 20, 1, 1) 
         
+        # Search bar position ✅ CORRECTO
         grid.attach(Gtk.Label(label=TR['Search bar position:']), 0, 21, 1, 1)
         searchbar_combo = Gtk.ComboBoxText()
         searchbar_combo.append("top", TR['top'])
@@ -383,7 +390,7 @@ class ConfigWindow(Gtk.Window):
         searchbar_combo.connect("changed", self.on_combobox_changed, 'window', 'search_bar_position')
         grid.attach(searchbar_combo, 1, 21, 1, 1)
         
-# ← NUEVO: Control para search_bar_container
+        # Search bar container ✅ CORRECTO
         grid.attach(Gtk.Label(label=TR['Search bar container:']), 0, 22, 1, 1)
         container_combo = Gtk.ComboBoxText()
         container_combo.append("window", TR['In window'])
@@ -393,11 +400,11 @@ class ConfigWindow(Gtk.Window):
         container_combo.connect("changed", self.on_combobox_changed, 'window', 'search_bar_container')
         grid.attach(container_combo, 1, 22, 1, 1)      
 
-        # [CORRECCIÓN] Envolver el grid en un ScrolledWindow
+        # Envolver el grid en un ScrolledWindow
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scrolled_window.add(grid)
-        return scrolled_window # Devolver el ScrolledWindow
+        return scrolled_window
               
     def on_check_toggled(self, check_button, category, key):
         """Handle Gtk.CheckButton toggle events and save the state."""
@@ -1427,12 +1434,26 @@ class ConfigWindow(Gtk.Window):
         print(f"DEBUG: Guardado {category}.{key} = {value}")
         
     def on_combo_changed(self, combo, category, key):
-        selected_text = combo.get_active_text()
-        for k, v in TR.translations.items():
-            if v == selected_text:
-                self.config[category][key] = k
-                break
-        self.config_manager.save_config(self.config)        
+            """Manejar cambios en ComboBox sin ID (usado para halign)"""
+            selected_text = combo.get_active_text()
+            
+            # Para halign, mapear el texto traducido a valores en inglés
+            if key == 'halign':
+                halign_options = ["center", "left", "right"]
+                # Crear mapeo inverso
+                halign_map = {}
+                for option in halign_options:
+                    halign_map[TR[option]] = option
+                
+                value = halign_map.get(selected_text, 'center')
+                self.config[category][key] = value
+                self.config_manager.save_config(self.config)
+                print(f"DEBUG: Guardado {category}.{key} = {value}")
+            else:
+                # Para otros casos no previstos
+                self.config[category][key] = selected_text
+                self.config_manager.save_config(self.config)
+                print(f"DEBUG: Guardado {category}.{key} = {selected_text}")       
 
     def on_path_changed(self, entry, category, key):
         self.config[category][key] = entry.get_text()
