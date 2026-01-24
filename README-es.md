@@ -58,70 +58,126 @@ Herramienta gráfica de configuración para personalizar el menú.
 
 ---
 
-## 🌍 Sistema de Traducción
+# 🌍 Sistema de Traducción
 
-PyMenuPup utiliza un sistema de traducción simple y amigable basado en archivos `.lang`. No necesitas herramientas complejas como `poedit` o `gettext`.
+PyMenuPup utiliza un **sistema de traducción simple y fácil de usar** basado en archivos `.lang`.  
+No se necesitan herramientas complejas como `poedit` o `gettext`.
 
-### Cómo Funciona
+El proyecto ya incluye un **`template.lang` listo para usar**, solo necesitas copiarlo y traducirlo.
 
-Las traducciones se almacenan en archivos de texto plano con un formato simple `clave = valor`:
-```
-# Ejemplo: /usr/share/locale/pymenupup/es.lang
+---
+
+## Cómo Funciona
+
+Las traducciones utilizan un formato de texto simple `clave = valor`.  
+Solo traduces el texto **después del signo `=`**.
+
+```text
+# Ejemplo
 Search applications... = Buscar aplicaciones...
 Shutdown = Apagar
 Desktop = Escritorio
 ```
 
-### Ubicación de Archivos de Traducción
+Si una línea se deja vacía, PyMenuPup usará automáticamente el inglés.
 
-Los archivos de traducción se buscan en orden de prioridad:
+---
 
-1. `~/.config/pymenupup/locale/` - Personalizaciones del usuario (mayor prioridad)
-2. `/usr/local/share/locale/pymenupup/` - Instalación local
-3. `/usr/share/locale/pymenupup/` - A nivel de sistema
+## Ubicación de los Archivos de Traducción
 
-### Idiomas Soportados
+Los archivos de traducción se buscan en este orden (mayor prioridad primero):
 
-- **Inglés (en)** - Incorporado (no necesita archivo)
-- **Español (es)** - `es.lang` incluido
-- **Francés (fr)** - `fr.lang` incluido
+1. `~/.config/pymenupup/locale/` — **Traducciones de usuario** (recomendado)
+2. `/usr/local/share/locale/pymenupup/`
+3. `/usr/share/locale/pymenupup/` — A nivel de sistema
 
-### Crear una Nueva Traducción
+> **Consejo:** Usar la carpeta de usuario evita modificar archivos del sistema.
 
-Para traducir PyMenuPup a tu idioma:
+---
 
-1. Copia el archivo `.lang` en inglés o español:
+## Idiomas Soportados
+
+- **Inglés (en)** — Incluido por defecto (no requiere archivo)
+- **Español (es)** — `es.lang` incluido
+- **Francés (fr)** — `fr.lang` incluido
+
+Se pueden agregar más idiomas fácilmente.
+
+---
+
+## Crear una Nueva Traducción (Recomendado)
+
+### 1. Copia el archivo template y renómbralo usando el código de tu idioma:
+
 ```bash
-sudo cp /usr/share/locale/pymenupup/es.lang /usr/share/locale/pymenupup/TU_IDIOMA.lang
+template.lang → es.lang
 ```
 
-2. Edita el archivo con cualquier editor de texto:
-```bash
-sudo nano /usr/share/locale/pymenupup/TU_IDIOMA.lang
+**Ejemplos:**
+- `fr.lang` — Francés
+- `de.lang` — Alemán
+- `pt.lang` — Portugués
+
+### 2. Abre el archivo con cualquier editor de texto.
+
+### 3. Traduce solo el texto en el lado derecho de `=`:
+
+```text
+PyMenuPup Configurator = Configurador de PyMenuPup
+Window = Ventana
+Colors = Colores
+Font = Fuente
 ```
 
-3. Traduce los valores (lado derecho del `=`):
-```
-# Antes
-Search applications... = Buscar aplicaciones...
+### 4. Guarda el archivo y reinicia PyMenuPup.
 
-# Después (ejemplo: Alemán)
-Search applications... = Anwendungen suchen...
-```
+**¡Eso es todo! 🎉** No se requieren cambios en el código Python.
 
-4. Guarda y reinicia PyMenuPup
+---
 
-**¡Eso es todo!** No necesitas modificar ningún código Python.
+## Variantes Regionales
 
-### Variantes Regionales
+Se admiten archivos de idioma regionales, por ejemplo:
 
-Puedes crear variantes regionales como:
-- `es-MX.lang` (Español - México)
-- `es-AR.lang` (Español - Argentina)
-- `fr-CA.lang` (Francés - Canadá)
-- `pt-BR.lang` (Portugués - Brasil)
+- `es-MX.lang` — Español (México)
+- `es-AR.lang` — Español (Argentina)
+- `fr-CA.lang` — Francés (Canadá)
+- `pt-BR.lang` — Portugués (Brasil)
 
-El sistema automáticamente recurre al idioma base si no encuentra una variante regional.
+Si no se encuentra un archivo regional, PyMenuPup automáticamente usará el idioma base (por ejemplo `es.lang`).
+
+---
+
+## Ejemplo de Flujo de Trabajo de Traducción
+
+1. **Crea tu directorio de idioma:**
+   ```bash
+   mkdir -p ~/.config/pymenupup/locale
+   ```
+
+2. **Copia el template:**
+   ```bash
+   cp template.lang ~/.config/pymenupup/locale/es.lang
+   ```
+
+3. **Edita y traduce:**
+   ```bash
+   nano ~/.config/pymenupup/locale/es.lang
+   ```
+
+4. **Reinicia PyMenuPup** ¡y tu idioma será detectado automáticamente!
+
+---
+
+## Contribuir Traducciones
+
+Si creas una traducción para un nuevo idioma, considera contribuirla al proyecto:
+
+1. Haz un fork del repositorio
+2. Agrega tu archivo `.lang` al directorio `locale/`
+3. Envía un pull request
+---
+
 
 ### Mapeo de Nombres de Categorías
 
@@ -216,6 +272,17 @@ sudo pacman -S python python-gobject gtk3 xdg-utils
 ```bash
 sudo dnf install python3 python3-gobject gtk3 xdg-utils
 ```
+
+#### En Fossapup64 9.5
+
+Gracias al usuario **Burunduk** por probar en Fossapup64. Para ejecutar PyMenu en una instalación fresca de Fossapup-9.5:
+
+1. Abre el PPM (Gestor de Paquetes de Puppy)
+2. Actualiza la base de datos (~16 MB de descarga)
+3. Busca e instala `meld_3.20.2` y sus dependencias (~3 MB, usa modo auto-instalación)
+4. Ejecuta PyMenu - ahora debería funcionar
+
+**Nota:** Meld es una pequeña herramienta GUI diff que proporciona las dependencias GTK necesarias y puede ser útil por sí misma.
 
 ---
 
@@ -425,6 +492,24 @@ launcher_item_app = /usr/local/bin/pymenu-globicons.py
 
 ---
 
+## Herramientas Externas (Opcional)
+
+PyMenu puede integrarse con herramientas externas para funcionalidad extendida. Estas herramientas **no están incluidas** en este proyecto y son completamente opcionales:
+
+### Gestor de Perfil
+- Una herramienta personalizada para configurar tu foto de perfil
+- Configura la ruta en: **Ajustes > Rutas > Gestor de perfil**
+- PyMenu funcionará sin esta herramienta
+
+### Diálogo de Apagado
+- Una interfaz personalizada de apagado/cierre de sesión
+- Configura la ruta en: **Ajustes > Rutas > Comando de apagado**
+- PyMenu funcionará sin esta herramienta
+
+**Nota:** Los usuarios pueden especificar sus propias herramientas o scripts personalizados para estas funciones. Las rutas en la configuración son ejemplos y deben ajustarse a tu sistema.
+
+---
+
 ## Uso
 
 ### Ejecutando el Menú
@@ -462,18 +547,34 @@ O desde el menú principal, haz clic en el icono de configuración.
 ## Estructura de Archivos
 ```
 PyMenuPup/
-├── pymenu-globicons.py      # Menú principal
-├── pymenu-config.py          # Configurador GTK
-├── pymenupuplang.py          # Sistema de traducción
-├── locale/
-│   ├── es.lang              # Traducción español
-│   └── fr.lang              # Traducción francés
-├── README.md                 # Documentación en inglés
-├── README-es.md              # Este archivo
-├── TECHNICAL.md              # Documentación técnica (inglés)
-├── TECHNICAL-es.md           # Documentación técnica (español)
-├── LICENSE                   # Licencia GPL
-└── screenshots/              # Capturas de pantalla (opcional)
+├── README.md                  # Archivo principal (inglés)
+├── README-es.md               # Archivo principal (español)
+├── TECHNICAL.md               # Documentación técnica (inglés)
+├── TECHNICAL-es.md            # Documentación técnica (español)
+├── pymenu-globicons.py        # Menú principal
+├── pymenu-config.py           # Configurador GTK
+├── pymenupuplang.py           # Sistema de traducción
+├── distro-linux/             # Configuraciones específicas de cada distro
+│   ├── Essora/
+│   │   ├── Pymenu-essora.py
+│   │   ├── pymenu-config-essora.py
+│   │   └── pymenupuplang.py
+│   └── Trixiepup-Wayland/
+│       └── Pymenu-trixiewayland.py
+├── locale/                   # Traducciones
+│   ├── ar.lang                # Árabe
+│   ├── de.lang                # Alemán
+│   ├── es.lang                # Español
+│   ├── fr.lang                # Francés
+│   ├── it.lang                # Italiano
+│   ├── ja.lang                # Japonés
+│   ├── pt-BR.lang             # Portugués (Brasil)
+│   ├── pt-PT.lang             # Portugués (Portugal)
+│   ├── ru.lang                # Ruso
+│   └── template.lang          # Plantilla base
+└── screenshots/              # Capturas de pantalla
+├── config-tool.png
+└── main-menu.png
 ```
 
 ### Rutas de Instalación

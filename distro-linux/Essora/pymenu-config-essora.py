@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf
+from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
+import subprocess
 import json
 import os
 import sys
@@ -9,37 +10,30 @@ import locale
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-# === 🌍 Sistema de Traducción y Configuración (Modificado para Essora) ===
+# === DEFINIR HOME_DIR ===
+HOME_DIR = os.path.expanduser("~")
+
+# === 🌍 Sistema de Traducción ===
 try:
-    from pymenuessoralang import TranslationManager
-    TR = TranslationManager()
-except ImportError:
-    # Si no encuentra el módulo, usa un fallback básico
-    class DummyTR:
-        def __getitem__(self, key): return key
-        def get(self, key, default=None): return default or key
-        def get_category_map(self): return {}
-    TR = DummyTR()
+    sys.path.insert(0, '/usr/local/essora-kit')
+    from pymenupuplang import TranslationManager
+except ModuleNotFoundError:
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "pymenupuplang", 
+        "/usr/local/essora-kit/pymenupuplang.py"
+    )
+    if spec and spec.loader:
+        pymenupuplang = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(pymenupuplang)
+        TranslationManager = pymenupuplang.TranslationManager
+    else:
+        print("ERROR: No se pudo cargar pymenupuplang.py")
+        sys.exit(1)
 
-# Definición de rutas con prioridad para Essora Linux
-CONFIG_PATHS = [
-    os.path.expanduser("~/.config/essora-kit/pymenu.json"),
-    os.path.expanduser("~/.config/pymenu.json"),
-    "/root/.config/pymenu.json",
-    "/usr/local/essora-kit/pymenu.json"
-]
+TR = TranslationManager()
 
-def get_config_path():
-    """Selecciona la ruta de configuración con prioridad para essora-kit"""
-    for path in CONFIG_PATHS:
-        if os.path.exists(path):
-            return path
-    # Si ninguno existe, crea el del usuario por defecto
-    default_path = CONFIG_PATHS[0]
-    os.makedirs(os.path.dirname(default_path), exist_ok=True)
-    return default_path
-
-CONFIG_FILE = get_config_path()
+CONFIG_FILE = "/usr/local/essora-kit/pymenu.json"
 
 class ConfigManager:
     """Clase para cargar y guardar la configuración."""
@@ -51,34 +45,36 @@ class ConfigManager:
         """Devuelve una configuración predeterminada."""
         return {
             "window": {
-                "width": 700,
-                "height": 850,
+                "width": 547,
+                "height": 567,
                 "decorated_window": False,
-                "hide_header": False, 
+                "hide_header": False,
                 "hide_profile_pic": False,
-                "hide_category_text": False,
                 "halign": "center",
                 "icon_size": 32,
+                "profile_pic_size": 64,
+                "hide_category_text": False,
                 "category_icon_size": 16,
-                "profile_pic_size": 128,
-                "profile_pic_shape": "square",   
+                "profile_pic_shape": "square",
                 "header_layout": "left",
-                "header_text_align": "left",
-                "search_bar_position": "bottom",
                 "hide_os_name": False,
                 "hide_kernel": False,
-                "hide_hostname": False
+                "hide_hostname": False,
+                "hide_places": False,           
+                "hide_favorites": False,       
+                "profile_in_places": False,
+                "search_bar_position": "bottom",  
+                "search_bar_container": "window"     
             },
             "font": {
-                "family": "Terminess Nerd Font Propo",
-                "family_categories": "Terminess Nerd Font Propo",
-                "size_categories": 15000,
-                "size_names": 14000,
-                "size_header": 16000
+                "family": "Terminess Nerd Font Propo Bold 16",
+                "size_categories": 14000,
+                "size_names": 12000,
+                "size_header": 12000
             },
             "colors": {
+                "use_gtk_theme": True,
                 "background_opacity": 0.7,
-                "use_gtk_theme": False, 
                 "background": "rgba(0, 0, 0, 0.7)",
                 "border": "rgba(255, 255, 255, 0.1)",
                 "text_normal": "#D8DEE9",
@@ -90,21 +86,22 @@ class ConfigManager:
                 "selected_text": "#ECEFF4",
                 "button_normal_background": "rgba(0,0,0,0.6)",
                 "button_text": "#ECEFF4",
-                "categories_background": "rgba(0,0,0,0.6)",
+                "categories_background": "rgba(0,0,0,0.4)"
             },
             "paths": {
-                "profile_pic": "/usr/local/essora-kit/face",
+                "profile_pic": os.path.join(HOME_DIR, "face"),
                 "profile_manager": "/usr/local/essora-kit/ProfileManager.py",
-                "shutdown_cmd": "/usr/local/KLA-Shutdown/logout_gui.py",
+                "shutdown_cmd": "/usr/local/bin/logout_gui",
                 "jwmrc_tray": "/usr/share/jwm/jwm/jwmrc-tray",          
-                "tint2rc": "/usr/share/tint2/tint2/tint2rc",    
+                "tint2rc": "/usr/share/tint2/tint2/tint2rc"  
             },
-            "tray": {
+                "tray": {
                 "use_tint2": False
             },
             "categories": {
                 "excluded": []
-            }
+            },
+        "favorites": [] 
         }
 
     def load_config(self):
@@ -230,6 +227,7 @@ class ConfigWindow(Gtk.Window):
         hide_profile_check.connect("toggled", self.on_check_toggled, "window", "hide_profile_pic")
         grid.attach(hide_profile_check, 1, 4, 1, 1)
         
+        # Header layout
         grid.attach(Gtk.Label(label=TR['Header layout:']), 0, 5, 1, 1)
         header_layout_combo = Gtk.ComboBoxText()
         header_layout_combo.append("left", TR['Avatar left'])
@@ -249,7 +247,7 @@ class ConfigWindow(Gtk.Window):
         current_text_align = self.config['window'].get('header_text_align', 'left')
         header_text_align_combo.set_active_id(current_text_align)
         header_text_align_combo.connect("changed", self.on_combobox_changed, 'window', 'header_text_align')
-        grid.attach(header_text_align_combo, 1, 6, 1, 1)    
+        grid.attach(header_text_align_combo, 1, 6, 1, 1)
         
         # Hide OS name
         grid.attach(Gtk.Label(label=TR['Hide OS name:']), 0, 7, 1, 1)
@@ -276,42 +274,81 @@ class ConfigWindow(Gtk.Window):
         grid.attach(Gtk.Label(label=TR['Hide categories text:']), 0, 10, 1, 1)
         hide_cat_text_check = Gtk.CheckButton()
         hide_cat_text_check.set_active(self.config['window'].get('hide_category_text', False))
-        hide_cat_text_check.connect("toggled", self.on_checkbox_toggled, 'window', 'hide_category_text')
+        hide_cat_text_check.connect("toggled", self.on_check_toggled, 'window', 'hide_category_text')
         grid.attach(hide_cat_text_check, 1, 10, 1, 1)
     
+        # ===== NUEVAS OPCIONES =====
+        
+        # Hide places sidebar
+        places_label_text = TR['Hide places sidebar:'] + '\n' + TR['(Hides both places and favorites)']
+        places_label = Gtk.Label(label=places_label_text)
+        places_label.set_halign(Gtk.Align.START)
+        places_label.set_line_wrap(True)
+        grid.attach(places_label, 0, 11, 1, 1)
+        
+        hide_places_check = Gtk.CheckButton()
+        hide_places_check.set_active(self.config['window'].get('hide_places', False))
+        hide_places_check.connect("toggled", self.on_check_toggled, "window", "hide_places")
+        grid.attach(hide_places_check, 1, 11, 1, 1)
+        
+        # Hide favorites only (solo si places está visible)
+        favorites_label_text = TR['Hide favorites only:'] + '\n' + TR['(Show places but hide favorites)']
+        favorites_label = Gtk.Label(label=favorites_label_text)
+        favorites_label.set_halign(Gtk.Align.START)
+        favorites_label.set_line_wrap(True)
+        grid.attach(favorites_label, 0, 12, 1, 1)
+        
+        hide_favorites_check = Gtk.CheckButton()
+        hide_favorites_check.set_active(self.config['window'].get('hide_favorites', False))
+        hide_favorites_check.connect("toggled", self.on_check_toggled, "window", "hide_favorites")
+        grid.attach(hide_favorites_check, 1, 12, 1, 1)
+        
+        # Profile in places (mover perfil a la columna Places)
+        profile_places_label_text = TR['Show profile in places sidebar:'] + '\n' + TR['(Instead of header)']
+        profile_places_label = Gtk.Label(label=profile_places_label_text)
+        profile_places_label.set_halign(Gtk.Align.START)
+        profile_places_label.set_line_wrap(True)
+        grid.attach(profile_places_label, 0, 13, 1, 1)
+        
+        # En la línea donde se crea el checkbox de profile_in_places:
+        profile_in_places_check = Gtk.CheckButton()
+        profile_in_places_check.set_active(self.config['window'].get('profile_in_places', False))  # ← False por defecto
+        profile_in_places_check.connect("toggled", self.on_check_toggled, "window", "profile_in_places")
+        grid.attach(profile_in_places_check, 1, 13, 1, 1)
+    
         # Icon size
-        grid.attach(Gtk.Label(label=TR['Icon size:']), 0, 11, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Icon size:']), 0, 14, 1, 1)
         icon_size_spin = Gtk.SpinButton.new_with_range(16, 64, 8)
         icon_size_spin.set_value(self.config['window'].get('icon_size', 32))
         icon_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "icon_size")
-        grid.attach(icon_size_spin, 1, 11, 1, 1)
+        grid.attach(icon_size_spin, 1, 14, 1, 1)
     
         # Category icon size
-        grid.attach(Gtk.Label(label=TR['Category icon size:']), 0, 12, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Category icon size:']), 0, 15, 1, 1)
         category_icon_size_spin = Gtk.SpinButton.new_with_range(16, 64, 8)
         category_icon_size_spin.set_value(self.config['window'].get('category_icon_size', 24))
         category_icon_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "category_icon_size")
-        grid.attach(category_icon_size_spin, 1, 12, 1, 1)
+        grid.attach(category_icon_size_spin, 1, 15, 1, 1)
     
         # Profile pic size
-        grid.attach(Gtk.Label(label=TR['Profile pic size:']), 0, 13, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Profile pic size:']), 0, 16, 1, 1)
         profile_pic_size_spin = Gtk.SpinButton.new_with_range(64, 256, 8)
         profile_pic_size_spin.set_value(self.config['window'].get('profile_pic_size', 128))
         profile_pic_size_spin.connect("value-changed", self.on_spin_button_changed, "window", "profile_pic_size")
-        grid.attach(profile_pic_size_spin, 1, 13, 1, 1)
+        grid.attach(profile_pic_size_spin, 1, 16, 1, 1)
     
-        # Profile pic shape - NUEVO
-        grid.attach(Gtk.Label(label=TR['Profile pic shape:']), 0, 14, 1, 1)
+        # Profile pic shape
+        grid.attach(Gtk.Label(label=TR['Profile pic shape:']), 0, 17, 1, 1)
         shape_combo = Gtk.ComboBoxText()
         shape_combo.append("square", TR['square'])
         shape_combo.append("circular", TR['circular'])
         current_shape = self.config['window'].get('profile_pic_shape', 'square')
         shape_combo.set_active_id(current_shape)
         shape_combo.connect("changed", self.on_combobox_changed, 'window', 'profile_pic_shape')
-        grid.attach(shape_combo, 1, 14, 1, 1)
+        grid.attach(shape_combo, 1, 17, 1, 1)
     
         # Horizontal alignment
-        grid.attach(Gtk.Label(label=TR['Horizontal alignment:']), 0, 15, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Horizontal alignment:']), 0, 18, 1, 1)
         halign_combo = Gtk.ComboBoxText()
         halign_options = ["center", "left", "right"]
         for option in halign_options:
@@ -323,18 +360,28 @@ class ConfigWindow(Gtk.Window):
         except ValueError:
             halign_combo.set_active(0)
         halign_combo.connect("changed", self.on_combo_changed, "window", "halign")
-        grid.attach(halign_combo, 1, 15, 1, 1)
+        grid.attach(halign_combo, 1, 18, 1, 1)
         
         # Search bar position
-        grid.attach(Gtk.Label(label=TR['Search bar position:']), 0, 16, 1, 1)
+        grid.attach(Gtk.Label(label=TR['Search bar position:']), 0, 19, 1, 1)
         searchbar_combo = Gtk.ComboBoxText()
         searchbar_combo.append("top", TR['top'])
         searchbar_combo.append("bottom", TR['bottom'])
         current_searchbar = self.config['window'].get('search_bar_position', 'bottom')
         searchbar_combo.set_active_id(current_searchbar)
         searchbar_combo.connect("changed", self.on_combobox_changed, 'window', 'search_bar_position')
-        grid.attach(searchbar_combo, 1, 16, 1, 1)        
+        grid.attach(searchbar_combo, 1, 19, 1, 1)
         
+        # Control para search_bar_container (añadir después de la posición)
+        grid.attach(Gtk.Label(label=TR['Search bar container:']), 0, 20, 1, 1)
+        container_combo = Gtk.ComboBoxText()
+        container_combo.append("window", TR['In window'])
+        container_combo.append("apps_column", TR['In applications column'])
+        current_container = self.config['window'].get('search_bar_container', 'window')
+        container_combo.set_active_id(current_container)
+        container_combo.connect("changed", self.on_combobox_changed, 'window', 'search_bar_container')
+        grid.attach(container_combo, 1, 20, 1, 1)        
+    
         # Envolver el grid en un ScrolledWindow
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -345,7 +392,26 @@ class ConfigWindow(Gtk.Window):
     def on_check_toggled(self, check_button, category, key):
         """Handle Gtk.CheckButton toggle events and save the state."""
         self.config[category][key] = check_button.get_active()
-        self.config_manager.save_config(self.config) 
+        
+        # LÓGICA DE VALIDACIÓN: Si se activa "profile_in_places", desactivar "hide_profile_pic"
+        if key == "profile_in_places" and check_button.get_active():
+            # Si movemos el perfil a Places, no tiene sentido ocultar la foto
+            self.config['window']['hide_profile_pic'] = False
+            
+            # También actualizar el checkbox en la interfaz si existe
+            if hasattr(self, 'hide_profile_check'):
+                self.hide_profile_check.set_active(False)
+        
+        # LÓGICA DE VALIDACIÓN 2: Si se activa "hide_places", desactivar "profile_in_places"
+        elif key == "hide_places" and check_button.get_active():
+            # Si ocultamos toda la columna Places, no tiene sentido poner el perfil ahí
+            self.config['window']['profile_in_places'] = False
+            
+            # Actualizar el checkbox si existe
+            if hasattr(self, 'profile_in_places_check'):
+                self.profile_in_places_check.set_active(False)
+        
+        self.config_manager.save_config(self.config)
         
     def on_combobox_changed(self, combobox, category, key):
         """Manejar el cambio en un Gtk.ComboBoxText y guarda la nueva configuración,
@@ -423,17 +489,8 @@ class ConfigWindow(Gtk.Window):
         grid.attach(Gtk.Label(label=TR['Font family:']), 0, 0, 1, 1)
         font_button = Gtk.FontButton()
         font_button.set_font(self.config['font']['family'])
-        font_button.set_show_size(False)
         font_button.connect("font-set", self.on_font_set, "font", "family")
         grid.attach(font_button, 1, 0, 1, 1)
-        
-        # Nueva opción: Fuente para categorías
-        grid.attach(Gtk.Label(label=TR['Category font:']), 0, 1, 1, 1)
-        category_font_button = Gtk.FontButton()
-        category_font_button.set_font(self.config['font'].get('family_categories', self.config['font']['family']))
-        category_font_button.set_show_size(False)
-        category_font_button.connect("font-set", self.on_font_set, "font", "family_categories")
-        grid.attach(category_font_button, 1, 1, 1, 1)
         
         sizes_to_config = {
             "size_categories": TR['Category size:'],
@@ -441,17 +498,14 @@ class ConfigWindow(Gtk.Window):
             "size_header": TR['Header size:']
         }
         
-        for i, (key, label) in enumerate(sizes_to_config.items(), start=2):
+        for i, (key, label) in enumerate(sizes_to_config.items(), start=1):
             grid.attach(Gtk.Label(label=label), 0, i, 1, 1)
             size_spin = Gtk.SpinButton.new_with_range(5000, 50000, 1000)
             size_spin.set_value(self.config['font'][key])
             size_spin.connect("value-changed", self.on_spin_button_changed, "font", key)
             grid.attach(size_spin, 1, i, 1, 1)
             
-        scrolled_window = Gtk.ScrolledWindow()
-        scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scrolled_window.add(grid)
-        return scrolled_window
+        return grid
 
     def create_paths_tab(self):
         grid = Gtk.Grid(row_spacing=10, column_spacing=10)
@@ -465,58 +519,738 @@ class ConfigWindow(Gtk.Window):
             "tint2rc": TR['Tint2 config:']
         }
         
-        # Crear la entrada para la foto de perfil
+        # --- Configuración de Rutas Generales ---
+        # Fila 0: Profile pic path
         grid.attach(Gtk.Label(label=paths_to_config["profile_pic"]), 0, 0, 1, 1)
         entry_profile_pic = Gtk.Entry()
         entry_profile_pic.set_text(self.config['paths']["profile_pic"])
         entry_profile_pic.connect("changed", self.on_path_changed, "paths", "profile_pic")
-        grid.attach(entry_profile_pic, 1, 0, 2, 1)
+        grid.attach(entry_profile_pic, 1, 0, 1, 1)
+        browse_profile_pic = Gtk.Button(label="...")
+        browse_profile_pic.connect("clicked", self.on_browse_file, entry_profile_pic, TR['Select profile picture'])
+        grid.attach(browse_profile_pic, 2, 0, 1, 1)
         
-        # Crear la entrada para el gestor de perfil (ahora ocupa más columnas)
+        # Fila 1: Profile manager
         grid.attach(Gtk.Label(label=paths_to_config["profile_manager"]), 0, 1, 1, 1)
         entry_profile_manager = Gtk.Entry()
         entry_profile_manager.set_text(self.config['paths']["profile_manager"])
         entry_profile_manager.connect("changed", self.on_path_changed, "paths", "profile_manager")
-        grid.attach(entry_profile_manager, 1, 1, 16, 1)
+        grid.attach(entry_profile_manager, 1, 1, 1, 1)
+        browse_profile_manager = Gtk.Button(label="...")
+        browse_profile_manager.connect("clicked", self.on_browse_file, entry_profile_manager, TR['Select profile manager'])
+        grid.attach(browse_profile_manager, 2, 1, 1, 1)
         
-        # Crear la entrada para el comando de apagado (ahora ocupa más columnas)
+        # Fila 2: Shutdown command
         grid.attach(Gtk.Label(label=paths_to_config["shutdown_cmd"]), 0, 2, 1, 1)
         entry_shutdown_cmd = Gtk.Entry()
         entry_shutdown_cmd.set_text(self.config['paths']["shutdown_cmd"])
         entry_shutdown_cmd.connect("changed", self.on_path_changed, "paths", "shutdown_cmd")
-        grid.attach(entry_shutdown_cmd, 1, 2, 16, 1)
+        grid.attach(entry_shutdown_cmd, 1, 2, 1, 1)
+        browse_shutdown_cmd = Gtk.Button(label="...")
+        browse_shutdown_cmd.connect("clicked", self.on_browse_file, entry_shutdown_cmd, TR['Select shutdown command'])
+        grid.attach(browse_shutdown_cmd, 2, 2, 1, 1)
         
-                # Separador
-        separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        grid.attach(separator, 0, 3, 17, 1)
+        # Separador 1
+        separator1 = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        grid.attach(separator1, 0, 3, 3, 1)
         
-                # Checkbox para usar Tint2
+        # --- Configuración de Tray ---
+        # Fila 4: Use Tint2 checkbox
         grid.attach(Gtk.Label(label=TR['Use Tint2 (instead of JWM):']), 0, 4, 1, 1)
         self.tint2_checkbox = Gtk.CheckButton()
         self.tint2_checkbox.set_active(self.config.get('tray', {}).get('use_tint2', False))
         self.tint2_checkbox.connect("toggled", self.on_tint2_toggled)
         grid.attach(self.tint2_checkbox, 1, 4, 1, 1)
         
-                # Entrada para JWM Tray config
+        # Fila 5: JWM config
         self.jwm_label = Gtk.Label(label=paths_to_config["jwmrc_tray"])
         grid.attach(self.jwm_label, 0, 5, 1, 1)
         self.entry_jwmrc_tray = Gtk.Entry()
         self.entry_jwmrc_tray.set_text(self.config['paths'].get("jwmrc_tray", "/usr/share/jwm/jwm/jwmrc-tray"))
         self.entry_jwmrc_tray.connect("changed", self.on_path_changed, "paths", "jwmrc_tray")
-        grid.attach(self.entry_jwmrc_tray, 1, 5, 16, 1)
+        grid.attach(self.entry_jwmrc_tray, 1, 5, 1, 1)
+        browse_jwm = Gtk.Button(label="...")
+        browse_jwm.connect("clicked", self.on_browse_file, self.entry_jwmrc_tray, TR['Select JWM config'])
+        grid.attach(browse_jwm, 2, 5, 1, 1)
         
-        # Entrada para Tint2 config
+        # Fila 6: Tint2 config
         self.tint2_label = Gtk.Label(label=paths_to_config["tint2rc"])
         grid.attach(self.tint2_label, 0, 6, 1, 1)
         self.entry_tint2rc = Gtk.Entry()
         self.entry_tint2rc.set_text(self.config['paths'].get("tint2rc", "/usr/share/tint2/tint2/tint2rc"))
         self.entry_tint2rc.connect("changed", self.on_path_changed, "paths", "tint2rc")
-        grid.attach(self.entry_tint2rc, 1, 6, 16, 1)
+        grid.attach(self.entry_tint2rc, 1, 6, 1, 1)
+        browse_tint2 = Gtk.Button(label="...")
+        browse_tint2.connect("clicked", self.on_browse_file, self.entry_tint2rc, TR['Select Tint2 config'])
+        grid.attach(browse_tint2, 2, 6, 1, 1)
         
-        # Actualizar el estado de los widgets según el checkbox
+        # Separador 2
+        separator2 = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        grid.attach(separator2, 0, 7, 3, 1)
+        
+        # --- BUSCADOR (Search Engine) ---
+        # Fila 8: Search engine
+        grid.attach(Gtk.Label(label=TR['Search engine:']), 0, 8, 1, 1)
+        search_engine_combo = Gtk.ComboBoxText()
+        search_engine_combo.append("google", "Google")
+        search_engine_combo.append("duckduckgo", "DuckDuckGo")
+        search_engine_combo.append("brave", "Brave Search")
+        search_engine_combo.append("searxng", "SearXNG")
+        search_engine_combo.append("librex", "LibreX")
+        search_engine_combo.set_active_id(self.config.get('search_engine', {}).get('engine', 'google'))
+        search_engine_combo.connect("changed", self.on_search_engine_changed)
+        grid.attach(search_engine_combo, 1, 8, 2, 1)
+        
+        # Separador 3
+        separator3 = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        grid.attach(separator3, 0, 9, 3, 1)
+        
+        # === SECCIÓN DE FAVORITOS ===
+        # Fila 10: Título y botón
+        fav_title_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        favorites_label = Gtk.Label(label=f"<b>{TR['Favorites']}</b>")
+        favorites_label.set_use_markup(True)
+        fav_title_box.pack_start(favorites_label, False, False, 0)
+        
+        btn_always_add = Gtk.Button(label=TR.get('Add favorite', 'Add favorite'))
+        btn_always_add.connect("clicked", self.on_add_favorite_clicked)
+        fav_title_box.pack_end(btn_always_add, False, False, 0)
+        
+        grid.attach(fav_title_box, 0, 10, 3, 1)
+        
+        # Fila 11: Lista de favoritos con scroll
+        self.favorites_listbox = Gtk.ListBox()
+        self.favorites_listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        
+        fav_scroll = Gtk.ScrolledWindow()
+        fav_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        fav_scroll.set_size_request(-1, 200)
+        fav_scroll.add(self.favorites_listbox)
+        
+        grid.attach(fav_scroll, 0, 11, 3, 1)
+        
+        # Actualizar widgets del tray
         self.update_tray_widgets_sensitivity()
         
-        return grid
+        # Cargar favoritos existentes después de mostrar todo
+        def load_favorites_idle():
+            self.load_favorites_list()
+            return False
+        GLib.idle_add(load_favorites_idle)
+        
+        # Envolver todo en un ScrolledWindow principal para Puppy Linux
+        main_scrolled = Gtk.ScrolledWindow()
+        main_scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        main_scrolled.add(grid)
+        
+        return main_scrolled
+        
+# ===== FUNCIONES PARA FAVORITOS =====
+
+    def load_favorites_list(self):
+        """Cargar y mostrar la lista de favoritos actual"""
+        # Limpiar lista actual
+        for child in self.favorites_listbox.get_children():
+            self.favorites_listbox.remove(child)
+        
+        favorites = self.config.get('favorites', [])
+        
+        if not favorites:
+            # Crear fila especial cuando no hay favoritos
+            row = Gtk.ListBoxRow()
+            
+            # Usamos un botón en lugar de etiqueta para que responda al clic
+            btn_empty = Gtk.Button(label=TR.get('No favorites yet. Click here to add one.', 'No favorites yet. Click here to add one.'))
+            btn_empty.set_relief(Gtk.ReliefStyle.NONE)
+            
+            # Conectar el clic directamente a la función de agregar
+            btn_empty.connect("clicked", self.on_add_favorite_clicked)
+            
+            row.add(btn_empty)
+            self.favorites_listbox.add(row)
+        else:
+            for fav in favorites:
+                row = self.create_favorite_row(fav)
+                self.favorites_listbox.add(row)
+        
+        self.favorites_listbox.show_all()
+    
+    def create_favorite_row(self, fav):
+        """Crear una fila para mostrar un favorito con botones de acción"""
+        row = Gtk.ListBoxRow()
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        hbox.set_margin_top(5)
+        hbox.set_margin_bottom(5)
+        hbox.set_margin_start(10)
+        hbox.set_margin_end(10)
+        
+        # Usar el nombre directamente del JSON
+        name = fav.get('name', 'Unnamed')
+        exec_cmd = fav.get('exec', '')
+        icon_name = fav.get('icon', 'application-x-executable')
+        
+        # Determinar ícono basado en el tipo de comando
+        if 'gtk-launch' in exec_cmd:
+            icon_text = "📱"
+        elif any(x in exec_cmd for x in ['pcmanfm', 'rox', 'thunar', 'nautilus']):
+            icon_text = "📁"
+        else:
+            icon_text = "⚙️"
+        
+        # Ícono
+        icon_label = Gtk.Label(label=icon_text)
+        hbox.pack_start(icon_label, False, False, 0)
+        
+        # ✅ CORRECTO: Botón clickeable para editar
+        name_button = Gtk.Button(label=name)
+        name_button.set_relief(Gtk.ReliefStyle.NONE)
+        name_button.set_halign(Gtk.Align.START)
+        name_button.connect("clicked", self.on_edit_favorite_clicked, fav)
+        hbox.pack_start(name_button, True, True, 0)
+        
+        # Comando (truncado)
+        cmd_preview = exec_cmd[:30] + "..." if len(exec_cmd) > 30 else exec_cmd
+        cmd_label = Gtk.Label()
+        cmd_label.set_markup(f"<small><i>{cmd_preview}</i></small>")
+        hbox.pack_start(cmd_label, False, False, 0)
+        
+        # Botón eliminar
+        delete_button = Gtk.Button(label="🗑️")
+        delete_button.set_relief(Gtk.ReliefStyle.NONE)
+        delete_button.connect("clicked", self.on_delete_favorite_clicked, fav)
+        hbox.pack_start(delete_button, False, False, 0)
+        
+        row.add(hbox)
+        return row
+        
+    def on_edit_favorite_clicked(self, button, fav_original):
+        """Mostrar diálogo para editar un favorito existente"""
+        dialog = Gtk.Dialog(
+            title=TR.get('Edit Favorite', 'Edit Favorite'),
+            parent=self,
+            flags=0
+        )
+        dialog.add_buttons(
+            TR['Cancel'], Gtk.ResponseType.CANCEL,
+            TR.get('Save', 'Save'), Gtk.ResponseType.OK
+        )
+        dialog.set_default_size(500, 300)
+        
+        content = dialog.get_content_area()
+        content.set_spacing(10)
+        content.set_border_width(10)
+        
+        # Nombre
+        content.pack_start(Gtk.Label(label=TR.get('Name:', 'Name:'), halign=Gtk.Align.START), False, False, 0)
+        name_entry = Gtk.Entry()
+        name_entry.set_text(fav_original.get('name', ''))
+        content.pack_start(name_entry, False, False, 0)
+        
+        # Comando con botón de explorar
+        content.pack_start(Gtk.Label(label=TR.get('Command:', 'Command:'), halign=Gtk.Align.START), False, False, 0)
+        
+        cmd_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        exec_entry = Gtk.Entry()
+        exec_entry.set_text(fav_original.get('exec', ''))
+        cmd_hbox.pack_start(exec_entry, True, True, 0)
+        
+        # ✅ NUEVO: Botón para explorar comando
+        cmd_browse_button = Gtk.Button(label="📂")
+        cmd_browse_button.set_tooltip_text(TR.get('Browse command', 'Browse command'))
+        cmd_browse_button.connect("clicked", self.on_browse_file, exec_entry, TR.get('Select command', 'Select command'))
+        cmd_hbox.pack_start(cmd_browse_button, False, False, 0)
+        
+        content.pack_start(cmd_hbox, False, False, 0)
+        
+        # Ícono con botones de explorar
+        content.pack_start(Gtk.Label(label=TR.get('Icon (optional):', 'Icon (optional):'), halign=Gtk.Align.START), False, False, 0)
+        
+        icon_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        
+        icon_entry = Gtk.Entry()
+        icon_entry.set_text(fav_original.get('icon', ''))
+        icon_hbox.pack_start(icon_entry, True, True, 0)
+        
+        # Botón explorar ícono
+        icon_browse_button = Gtk.Button(label="📂")
+        icon_browse_button.set_tooltip_text(TR.get('Browse icon', 'Browse icon'))
+        icon_browse_button.connect("clicked", self.on_browse_icon_clicked, icon_entry)
+        icon_hbox.pack_start(icon_browse_button, False, False, 0)
+        
+        content.pack_start(icon_hbox, False, False, 0)
+        
+        dialog.show_all()
+        response = dialog.run()
+        
+        if response == Gtk.ResponseType.OK:
+            name = name_entry.get_text().strip()
+            exec_cmd = exec_entry.get_text().strip()
+            icon = icon_entry.get_text().strip()
+            
+            if name and exec_cmd:
+                # Remover favorito viejo
+                if 'favorites' in self.config and fav_original in self.config['favorites']:
+                    self.config['favorites'].remove(fav_original)
+                
+                # Agregar favorito actualizado
+                fav_updated = {
+                    'name': name,
+                    'exec': exec_cmd,
+                    'icon': icon if icon else 'application-x-executable'
+                }
+                
+                if 'favorites' not in self.config:
+                    self.config['favorites'] = []
+                
+                self.config['favorites'].append(fav_updated)
+                self.config_manager.save_config(self.config)
+                self.load_favorites_list()
+                print(f"Favorito actualizado: {fav_updated}")
+        
+        dialog.destroy()        
+        
+    def on_add_favorite_clicked(self, button):
+        """Mostrar diálogo para agregar un nuevo favorito"""
+        dialog = Gtk.Dialog(
+            title=TR.get('Add Favorite', 'Add Favorite'),
+            parent=self,
+            flags=0
+        )
+        dialog.add_buttons(
+            TR['Cancel'], Gtk.ResponseType.CANCEL,
+            TR.get('Add', 'Add'), Gtk.ResponseType.OK
+        )
+        dialog.set_default_size(500, 400)
+        
+        content = dialog.get_content_area()
+        content.set_spacing(10)
+        content.set_border_width(10)
+        
+        # Notebook con pestañas para cada tipo
+        notebook = Gtk.Notebook()
+        content.pack_start(notebook, True, True, 0)
+        
+        # === PESTAÑA 1: APLICACIÓN ===
+        app_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        app_box.set_border_width(10)
+        
+        app_label = Gtk.Label(label=TR.get('Select an application:', 'Select an application:'))
+        app_label.set_halign(Gtk.Align.START)
+        app_box.pack_start(app_label, False, False, 0)
+        
+        # Caja de búsqueda
+        search_entry = Gtk.SearchEntry()
+        search_entry.set_placeholder_text(TR.get('Search applications...', 'Search applications...'))
+        app_box.pack_start(search_entry, False, False, 0)
+        
+        app_scrolled = Gtk.ScrolledWindow()
+        app_scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        
+        app_listbox = Gtk.ListBox()
+        app_listbox.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        
+        # Cargar aplicaciones desde /usr/share/applications
+        desktop_files = self.get_desktop_files()
+        all_rows = []  # Guardar todas las filas para filtrado
+        
+        for desktop_file in sorted(desktop_files):
+            display_name = os.path.basename(desktop_file).replace('.desktop', '')
+            row = Gtk.ListBoxRow()
+            label = Gtk.Label(label=display_name)
+            label.set_halign(Gtk.Align.START)
+            label.set_margin_start(10)
+            label.set_margin_top(5)
+            label.set_margin_bottom(5)
+            row.add(label)
+            row.desktop_path = desktop_file
+            row.display_name = display_name
+            app_listbox.add(row)
+            all_rows.append(row)
+        
+        # Función de filtrado
+        def on_search_changed(entry):
+            search_text = entry.get_text().lower()
+            for row in all_rows:
+                if search_text in row.display_name.lower():
+                    row.show()
+                else:
+                    row.hide()
+        
+        search_entry.connect("search-changed", on_search_changed)
+        
+        app_scrolled.add(app_listbox)
+        app_box.pack_start(app_scrolled, True, True, 0)
+        notebook.append_page(app_box, Gtk.Label(label=TR.get('Application', 'Application')))
+        
+        # === PESTAÑA 2: DIRECTORIO ===
+        dir_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        dir_box.set_border_width(10)
+        dir_label = Gtk.Label(label=TR.get('Select a directory:', 'Select a directory:'))
+        dir_label.set_halign(Gtk.Align.START)
+        dir_box.pack_start(dir_label, False, False, 0)
+        
+        dir_entry = Gtk.Entry()
+        dir_entry.set_placeholder_text(TR.get('Path to directory', 'Path to directory'))
+        dir_box.pack_start(dir_entry, False, False, 0)
+        
+        dir_browse = Gtk.Button(label=TR.get('Browse...', 'Browse...'))
+        dir_browse.connect("clicked", self.on_browse_directory, dir_entry)
+        dir_box.pack_start(dir_browse, False, False, 0)
+        
+        notebook.append_page(dir_box, Gtk.Label(label=TR.get('Directory', 'Directory')))
+        
+        # === PESTAÑA 3: COMANDO PERSONALIZADO ===
+        cmd_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        cmd_box.set_border_width(10)
+        
+        # Nombre
+        cmd_box.pack_start(Gtk.Label(label=TR.get('Name:', 'Name:'), halign=Gtk.Align.START), False, False, 0)
+        cmd_name_entry = Gtk.Entry()
+        cmd_name_entry.set_placeholder_text(TR.get('Favorite name', 'Favorite name'))
+        cmd_box.pack_start(cmd_name_entry, False, False, 0)
+        
+        # Comando con botón de explorar
+        cmd_box.pack_start(Gtk.Label(label=TR.get('Command:', 'Command:'), halign=Gtk.Align.START), False, False, 0)
+        
+        #NUEVO: Caja horizontal para comando + botón explorar
+        cmd_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        
+        cmd_exec_entry = Gtk.Entry()
+        cmd_exec_entry.set_placeholder_text(TR.get('Command to execute', 'Command to execute'))
+        cmd_hbox.pack_start(cmd_exec_entry, True, True, 0)
+        
+        # Botón explorar comando
+        cmd_browse_button = Gtk.Button(label="📂")
+        cmd_browse_button.set_tooltip_text(TR.get('Browse command', 'Browse command'))
+        cmd_browse_button.connect("clicked", self.on_browse_file, cmd_exec_entry, TR.get('Select command', 'Select command'))
+        cmd_hbox.pack_start(cmd_browse_button, False, False, 0)
+        
+        cmd_box.pack_start(cmd_hbox, False, False, 0)
+        
+        # Ícono con botón de explorar
+        cmd_box.pack_start(Gtk.Label(label=TR.get('Icon (optional):', 'Icon (optional):'), halign=Gtk.Align.START), False, False, 0)
+        
+        # Caja horizontal para entrada + botón
+        icon_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        
+        cmd_icon_entry = Gtk.Entry()
+        cmd_icon_entry.set_placeholder_text(TR.get('Icon name or path', 'Icon name or path'))
+        icon_hbox.pack_start(cmd_icon_entry, True, True, 0)
+        
+        # Botón explorar ícono
+        icon_browse_button = Gtk.Button(label="📂")
+        icon_browse_button.set_tooltip_text(TR.get('Browse icon', 'Browse icon'))
+        icon_browse_button.connect("clicked", self.on_browse_icon_clicked, cmd_icon_entry)
+        icon_hbox.pack_start(icon_browse_button, False, False, 0)
+        
+        cmd_box.pack_start(icon_hbox, False, False, 0)
+        
+        notebook.append_page(cmd_box, Gtk.Label(label=TR.get('Command', 'Command')))
+        
+        dialog.show_all()
+        response = dialog.run()
+        
+        if response == Gtk.ResponseType.OK:
+            current_page = notebook.get_current_page()
+            fav = None
+            
+            if current_page == 0:  # Aplicación (.desktop)
+                selected = app_listbox.get_selected_row()
+                if selected:
+                    # Intentar leer el ícono real del .desktop si es posible
+                    icon_name = "application-x-desktop"
+                    try:
+                        with open(selected.desktop_path, 'r') as f:
+                            for line in f:
+                                if line.startswith("Icon="):
+                                    icon_name = line.split("=")[1].strip()
+                                    break
+                    except: 
+                        pass
+                    
+                    fav = {
+                        'name': selected.display_name,
+                        'exec': f"gtk-launch {os.path.basename(selected.desktop_path)}",
+                        'icon': icon_name
+                    }
+            
+            elif current_page == 1:  # Directorio
+                path = dir_entry.get_text().strip()
+                if path:
+                    fav = {
+                        'name': os.path.basename(path) or path,
+                        'exec': f"pcmanfm '{path}'",  # O el gestor de archivos de Puppy (rox, pcmanfm)
+                        'icon': 'folder'
+                    }
+            
+            elif current_page == 2:  # Comando personalizado
+                name = cmd_name_entry.get_text().strip()
+                exec_cmd = cmd_exec_entry.get_text().strip()
+                icon = cmd_icon_entry.get_text().strip()
+                if name and exec_cmd:
+                    fav = {
+                        'name': name,
+                        'exec': exec_cmd,
+                        'icon': icon if icon else 'application-x-executable'
+                    }
+            
+            # Guardar si se creó un objeto favorito válido
+            if fav:
+                if 'favorites' not in self.config:
+                    self.config['favorites'] = []
+                self.config['favorites'].append(fav)
+                self.config_manager.save_config(self.config)
+                self.load_favorites_list()  # Actualizar la lista en el configurador
+        
+        dialog.destroy()
+        
+    def on_delete_favorite_clicked(self, button, fav):
+        """Eliminar un favorito de la lista"""
+        if 'favorites' in self.config:
+            # Encontrar y eliminar el favorito
+            for i, existing_fav in enumerate(self.config['favorites']):
+                if (existing_fav.get('name') == fav.get('name') and 
+                    existing_fav.get('exec') == fav.get('exec')):
+                    del self.config['favorites'][i]
+                    self.config_manager.save_config(self.config)
+                    self.load_favorites_list()
+                    break 
+
+    def on_edit_favorite_clicked(self, button, fav_original):
+        """Mostrar diálogo para editar un favorito existente"""
+        dialog = Gtk.Dialog(
+            title=TR.get('Edit Favorite', 'Edit Favorite'),
+            parent=self,
+            flags=0
+        )
+        dialog.add_buttons(
+            TR['Cancel'], Gtk.ResponseType.CANCEL,
+            TR.get('Save', 'Save'), Gtk.ResponseType.OK
+        )
+        dialog.set_default_size(500, 300)
+        
+        content = dialog.get_content_area()
+        content.set_spacing(10)
+        content.set_border_width(10)
+        
+        # Nombre
+        content.pack_start(Gtk.Label(label=TR.get('Name:', 'Name:'), halign=Gtk.Align.START), False, False, 0)
+        name_entry = Gtk.Entry()
+        name_entry.set_text(fav_original.get('name', ''))
+        content.pack_start(name_entry, False, False, 0)
+        
+        # Comando con botón de explorar
+        content.pack_start(Gtk.Label(label=TR.get('Command:', 'Command:'), halign=Gtk.Align.START), False, False, 0)
+        
+        cmd_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        exec_entry = Gtk.Entry()
+        exec_entry.set_text(fav_original.get('exec', ''))
+        cmd_hbox.pack_start(exec_entry, True, True, 0)
+        
+        # Botón para explorar comando
+        cmd_browse_button = Gtk.Button(label="📂")
+        cmd_browse_button.set_tooltip_text(TR.get('Browse command', 'Browse command'))
+        cmd_browse_button.connect("clicked", self.on_browse_file, exec_entry, TR.get('Select command', 'Select command'))
+        cmd_hbox.pack_start(cmd_browse_button, False, False, 0)
+        
+        content.pack_start(cmd_hbox, False, False, 0)
+        
+        # Ícono con botón de explorar
+        content.pack_start(Gtk.Label(label=TR.get('Icon (optional):', 'Icon (optional):'), halign=Gtk.Align.START), False, False, 0)
+        
+        icon_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        
+        icon_entry = Gtk.Entry()
+        icon_entry.set_text(fav_original.get('icon', ''))
+        icon_hbox.pack_start(icon_entry, True, True, 0)
+        
+        # Botón explorar ícono
+        icon_browse_button = Gtk.Button(label="📂")
+        icon_browse_button.set_tooltip_text(TR.get('Browse icon', 'Browse icon'))
+        icon_browse_button.connect("clicked", self.on_browse_icon_clicked, icon_entry)
+        icon_hbox.pack_start(icon_browse_button, False, False, 0)
+        
+        # ✅ YA NO HAY BOTÓN 🗂️ AQUÍ
+        
+        content.pack_start(icon_hbox, False, False, 0)
+        
+        dialog.show_all()
+        response = dialog.run()
+        
+        if response == Gtk.ResponseType.OK:
+            name = name_entry.get_text().strip()
+            exec_cmd = exec_entry.get_text().strip()
+            icon = icon_entry.get_text().strip()
+            
+            if name and exec_cmd:
+                # Remover favorito viejo
+                if 'favorites' in self.config and fav_original in self.config['favorites']:
+                    self.config['favorites'].remove(fav_original)
+                
+                # Agregar favorito actualizado
+                fav_updated = {
+                    'name': name,
+                    'exec': exec_cmd,
+                    'icon': icon if icon else 'application-x-executable'
+                }
+                
+                if 'favorites' not in self.config:
+                    self.config['favorites'] = []
+                
+                self.config['favorites'].append(fav_updated)
+                self.config_manager.save_config(self.config)
+                self.load_favorites_list()
+                print(f"Favorito actualizado: {fav_updated}")
+        
+        dialog.destroy()                         
+    
+    def get_desktop_files(self):
+        """Obtener lista de archivos .desktop del sistema"""
+        desktop_files = []
+        search_paths = [
+            '/usr/share/applications',
+            '/usr/local/share/applications',
+            os.path.expanduser('~/.local/share/applications')
+        ]
+        
+        for path in search_paths:
+            if os.path.exists(path):
+                for file in os.listdir(path):
+                    if file.endswith('.desktop'):
+                        desktop_files.append(os.path.join(path, file))
+        
+        return desktop_files
+        
+    def on_search_engine_changed(self, combobox):
+        """Manejar el cambio de motor de búsqueda"""
+        if 'search_engine' not in self.config:
+            self.config['search_engine'] = {}
+        self.config['search_engine']['engine'] = combobox.get_active_id()
+        self.config_manager.save_config(self.config)
+    
+    def on_browse_file(self, button, entry, dialog_title):
+        """Abrir diálogo para seleccionar archivo con gestor de archivos"""
+        dialog = Gtk.FileChooserDialog(
+            title=dialog_title,
+            parent=self,
+            action=Gtk.FileChooserAction.OPEN
+        )
+        dialog.add_buttons(
+            TR['Cancel'], Gtk.ResponseType.CANCEL,
+            TR['Select'], Gtk.ResponseType.OK
+        )
+        
+        # Botón para abrir gestor de archivos
+        file_manager_button = Gtk.Button(label="📂 " + TR.get('Open File Manager', 'Open File Manager'))
+        file_manager_button.connect("clicked", self.on_open_file_manager_clicked)
+        dialog.get_action_area().pack_start(file_manager_button, False, False, 0)
+        dialog.get_action_area().reorder_child(file_manager_button, 0)
+        
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            selected_file = dialog.get_filename()
+            entry.set_text(selected_file)
+        
+        dialog.destroy()
+    
+    def on_browse_directory(self, button, entry):
+        """Abrir selector de directorio"""
+        dialog = Gtk.FileChooserDialog(
+            title=TR.get('Select Directory', 'Select Directory'),
+            parent=self,
+            action=Gtk.FileChooserAction.SELECT_FOLDER
+        )
+        dialog.add_buttons(
+            TR['Cancel'], Gtk.ResponseType.CANCEL,
+            TR['Select'], Gtk.ResponseType.OK
+        )
+        
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            entry.set_text(dialog.get_filename())
+        
+        dialog.destroy()
+    
+    def on_browse_icon_clicked(self, button, entry):
+        """Abrir diálogo para seleccionar un ícono"""
+        dialog = Gtk.FileChooserDialog(
+            title=TR.get('Select Icon', 'Select Icon'),
+            parent=self,
+            action=Gtk.FileChooserAction.OPEN
+        )
+        dialog.add_buttons(
+            TR['Cancel'], Gtk.ResponseType.CANCEL,
+            TR['Select'], Gtk.ResponseType.OK
+        )
+        
+        # Filtrar archivos de imagen
+        filter_images = Gtk.FileFilter()
+        filter_images.set_name(TR.get('Image files', 'Image files'))
+        filter_images.add_mime_type('image/png')
+        filter_images.add_mime_type('image/svg+xml')
+        filter_images.add_mime_type('image/x-icon')
+        filter_images.add_pattern('*.png')
+        filter_images.add_pattern('*.svg')
+        filter_images.add_pattern('*.ico')
+        filter_images.add_pattern('*.xpm')
+        dialog.add_filter(filter_images)
+        
+        # Filtrar todos los archivos
+        filter_all = Gtk.FileFilter()
+        filter_all.set_name(TR.get('All files', 'All files'))
+        filter_all.add_pattern('*')
+        dialog.add_filter(filter_all)
+        
+        # Directorio inicial
+        if os.path.exists('/usr/share/pixmaps'):
+            dialog.set_current_folder('/usr/share/pixmaps')
+        elif os.path.exists('/usr/share/icons'):
+            dialog.set_current_folder('/usr/share/icons')
+        
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            selected_file = dialog.get_filename()
+            entry.set_text(selected_file)
+        
+        dialog.destroy()
+    
+    def on_open_file_manager_clicked(self, button):
+        """Abrir el gestor de archivos del sistema"""
+        # Detectar gestor de archivos disponible
+        file_managers = ['rox', 'pcmanfm', 'thunar', 'nautilus', 'dolphin', 'nemo']
+        
+        for fm in file_managers:
+            try:
+                subprocess.Popen([fm], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                print(f"✅ Opening {fm}")
+                return
+            except FileNotFoundError:
+                continue
+        
+        # Si ninguno funciona, intentar con xdg-open
+        try:
+            subprocess.Popen(['xdg-open', os.path.expanduser('~')], 
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception as e:
+            print(f"❌ Could not open file manager: {e}")       
+    
+    def on_browse_directory(self, button, entry):
+        """Abrir selector de directorio"""
+        dialog = Gtk.FileChooserDialog(
+            title=TR.get('Select Directory', 'Select Directory'),
+            parent=self,
+            action=Gtk.FileChooserAction.SELECT_FOLDER
+        )
+        dialog.add_buttons(
+            TR['Cancel'], Gtk.ResponseType.CANCEL,
+            TR['Select'], Gtk.ResponseType.OK
+        )
+        
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            entry.set_text(dialog.get_filename())
+        
+        dialog.destroy()
         
     def on_tint2_toggled(self, checkbox):
         """Manejar el toggle del checkbox de Tint2"""
@@ -642,12 +1376,7 @@ class ConfigWindow(Gtk.Window):
         self.config_manager.save_config(self.config)
 
     def on_font_set(self, font_button, category, key):
-        # Extraer solo la familia de fuente, sin el tamaño
-        font_desc = font_button.get_font()
-        # Separar la familia del tamaño (el tamaño viene al final)
-        parts = font_desc.rsplit(' ', 1)
-        font_family = parts[0] if len(parts) > 0 else font_desc
-        self.config[category][key] = font_family
+        self.config[category][key] = font_button.get_font()
         self.config_manager.save_config(self.config)
         
     def on_checkbox_toggled(self, button, category, key):

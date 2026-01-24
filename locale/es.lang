@@ -19,10 +19,27 @@ Error loading config file: = Error al cargar el archivo de configuración:
 Using default config. = Usando la configuración predeterminada.
 Config saved (without closing). = Configuración guardada (sin cerrar).
 An error occurred: = Ocurrió un error:
+ERROR: Could not load pymenupuplang.py = ERROR: No se pudo cargar pymenupuplang.py
+
+# === Terminal Output (Logging) ===
+Loading translations from: = Cargando traducciones desde:
+Category map built with = Mapa de categorías construido con
+entries = entradas
+Window Manager detected: = Gestor de ventanas detectado:
+Using user config = Usando configuración del usuario
+Automatically using Tint2 config = Usando configuración de Tint2 automáticamente
+Automatically using XFCE config = Usando configuración XFCE automáticamente
+Tray config detected from = Configuración de bandeja detectada desde
+Now monitoring JWM file for changes: = Monitoreando cambios en archivo JWM:
+Folder created: = Carpeta creada:
+File /etc/windowmanager not found, assuming JWM = Archivo /etc/windowmanager no encontrado, asumiendo JWM
+Mouse entered applications area = El ratón entró en el área de aplicaciones
+Using GTK theme colors = Usando colores del tema GTK
 
 # === GUI Principal (pymenu-globicons.py) ===
 Search applications... = Buscar aplicaciones...
 Shutdown = Apagar
+Leave = Salir
 Search in the web = Buscar en la web
 Pymenu config = Configurar Pymenu
 Select avatar = Seleccione avatar
@@ -30,12 +47,21 @@ Terminal = Terminal
 Terminal emulator = Emulador de terminal
 File Manager = Gestor de Archivos
 File manager = Gestor de archivos
-Firefox = Firefox
 Web browser = Navegador web
 Run = Ejecutar
 Create desktop shortcut = Crear acceso en escritorio
+Acceso directo creado: = Acceso directo creado:
+Comando validado: = Comando validado:
+Error creando acceso directo: = Error creando acceso directo:
+Open directory = Abrir directorio
 
-# === Directorios del Usuario ===
+# === User Directories (XDG) ===
+Home = Inicio
+Downloads = Descargas
+Music = Música
+Videos = Videos
+Pictures = Imágenes
+Documents = Documentos
 DownloadsDir = Descargas
 MusicDir = Música
 VideosDir = Videos
@@ -45,77 +71,84 @@ Open directory: = Abrir directorio:
 
 # === Redes Sociales ===
 Social Networks = Redes Sociales
+Hide social networks = Ocultar redes sociales
 Hide social networks: = Ocultar redes sociales:
+
+# === Opciones de Configuración GUI ===
+General = General
+Search bar position: = Posición de barra de búsqueda:
+Use system theme: = Usar tema del sistema:
+Background color: = Color de fondo:
+Border color: = Color de borde:
+Categories background: = Fondo de categorías:
+Text normal: = Texto normal:
+Header (OS): = Encabezado (OS):
+Header (Kernel): = Encabezado (Kernel):
+Header (Hostname): = Encabezado (Hostname):
+Hover background: = Fondo al pasar el ratón:
+Button background: = Fondo de botón:
+Button text: = Texto de botón:
+Font family: = Familia de fuente:
+Category font: = Fuente de categorías:
+Category size: = Tamaño de categorías:
+App name size: = Tamaño de nombres de apps:
+Header size: = Tamaño de encabezado:
+Profile pic path: = Ruta de foto de perfil:
+Profile manager: = Gestor de perfil:
+Shutdown command: = Comando de apagado:
+JWM Tray config: = Configuración de JWM Tray:
+Tint2 config: = Configuración de Tint2:
+Use Tint2 (instead of JWM): = Usar Tint2 (en lugar de JWM):
+Search engine: = Motor de búsqueda:
+Hide favorites = Ocultar favoritos
 
 # === Opciones de Ventana ===
 Window width: = Ancho de ventana:
 Window height: = Alto de ventana:
-Icon size: = Tamaño de los iconos:
+Icon size: = Tamaño de iconos:
 Category icon size: = Tamaño de iconos de categorías:
 Profile pic size: = Tamaño de foto de perfil:
 Profile pic shape: = Forma de foto de perfil:
 Show window frame: = Mostrar marco de ventana:
-(No transparency) = (Sin opacidad)
+(No transparency) = (Sin transparencia)
 
 # === Opciones de Visibilidad ===
 Hide header: = Ocultar encabezado:
 Hide profile picture: = Ocultar foto de perfil:
 Hide quick access: = Ocultar accesos rápidos:
-Hide social networks: = Ocultar redes sociales:
 Hide categories text: = Ocultar texto de categorías:
 Hide app names: = Ocultar nombres de apps:
 Hide OS name: = Ocultar nombre del OS:
 Hide kernel: = Ocultar kernel:
 Hide hostname: = Ocultar hostname:
+Hide places sidebar: = Ocultar barra lateral de lugares:
+(Hides both places and favorites) = (Oculta tanto lugares como favoritos)
+Hide favorites only: = Ocultar solo favoritos:
+(Show places but hide favorites) = (Mostrar lugares pero ocultar favoritos)
+Show profile in places sidebar: = Mostrar perfil en barra lateral de lugares:
+(Instead of header) = (En lugar del encabezado)
 
 # === Diseño del Encabezado ===
 Header layout: = Diseño del encabezado:
 Header text alignment: = Alineación del texto del encabezado:
-Avatar left = Avatar izquierda
-Avatar right = Avatar derecha
-Avatar center = Avatar centrado
+Avatar left = Avatar a la izquierda
+Avatar right = Avatar a la derecha
+Avatar center = Avatar al centro
 
 # === Formas y Posiciones ===
 square = Cuadrada
 circular = Circular
 top = Arriba
 bottom = Abajo
-center = centro
-left = izquierda
-right = derecha
+center = Centro
+left = Izquierda
+right = Derecha
 
 # === Alineación ===
 Horizontal alignment: = Alineación horizontal:
-Search bar position: = Posición de barra de búsqueda:
-
-# === Colores ===
-Use system theme: = Usar tema del sistema:
-Background color: = Fondo:
-Border color: = Borde:
-Categories background: = Fondo de categorías:
-Text normal: = Texto categoría:
-Header (OS): = Encabezado (OS):
-Header (Kernel): = Encabezado (Kernel):
-Header (Hostname): = Encabezado (Hostname):
-Hover background: = Fondo al pasar el ratón:
-Button background: = Fondo botón:
-Button text: = Texto botón:
-
-# === Fuentes ===
-Font family: = Familia de la fuente:
-Category font: = Fuente de categorías:
-Category size: = Tamaño de categorías:
-App name size: = Tamaño de nombres de apps:
-Header size: = Tamaño de encabezado:
-
-# === Rutas ===
-Profile pic path: = Foto de perfil:
-Profile manager: = Gestor de perfil:
-Shutdown command: = Comando de apagado:
-JWM Tray config: = Configuración JWM Tray:
-Tint2 config: = Configuración Tint2:
-Use Tint2 (instead of JWM): = Usar Tint2 (en lugar de JWM):
-Search engine: = Motor de búsqueda:
+Search bar container: = Contenedor de barra de búsqueda:
+In window = En ventana
+In applications column = En columna de aplicaciones
 
 # === Categorías ===
 Excluded categories: = Categorías excluidas:
@@ -124,9 +157,9 @@ Select categories to hide from menu = Selecciona categorías para ocultar del me
 # === Nombres de Categorías ===
 Desktop = Escritorio
 System = Sistema
-Setup = Configuración
+Setup = Config
 Utility = Utilidad
-Filesystem = Sistema de archivos
+Filesystem = Archivos
 Graphic = Gráfico
 Document = Documentos
 Business = Negocios
@@ -134,8 +167,73 @@ Personal = Personal
 Network = Red
 Internet = Internet
 Multimedia = Multimedia
-Fun = Entretenimiento
+Fun = Juegos
 Help = Ayuda
 Rectify = Rectificar
-Shutdown = Apagar
-Leave = Salir
+
+# === Bandeja/Tray ===
+Tray/Panel type: = Tipo de bandeja/panel:
+JWM Tray = Bandeja JWM
+Tint2 Panel = Panel Tint2
+XFCE Panel = Panel XFCE
+XFCE panel config: = Configuración de panel XFCE:
+LXDE panel config: Configuración del panel LXDE
+LXDE Panel: Panel LXDE
+LXDE Panel = Panel LXDE
+LXDE panel config: = Configuración del panel LXDE:
+LXDE config: = Configuración LXDE:
+Select LXDE config = Seleccionar configuración LXDE
+
+
+# === FAVORITOS ===
+Favorites = Favoritos
+Add favorite = Agregar favorito
+No favorites yet. Click here to add one. = Sin favoritos aún. Haz clic aquí para agregar.
+Add Favorite = Agregar Favorito
+Add = Agregar
+Select an application: = Selecciona una aplicación:
+Application = Aplicación
+Select a directory: = Selecciona un directorio:
+Path to directory = Ruta al directorio
+Browse... = Explorar...
+Directory = Carpeta
+Name: = Nombre:
+Favorite name = Nombre del favorito
+Command: = Comando:
+Command to execute = Comando a ejecutar
+Icon (optional): = Icono (opcional):
+Icon name or path = Nombre o ruta del icono
+Browse icon = Explorar icono
+Open File Manager = Abrir Administrador de Archivos
+Command = Comando
+Select Directory = Seleccionar Directorio
+Select Icon = Seleccionar Icono
+Image files = Archivos de imagen
+All files = Todos los archivos
+# === Carpetas Visibles en Places Sidebar ===
+Visible Folders in Places Sidebar = Carpetas Visibles en la Barra Lateral de Lugares
+Select which folders to show in the Places sidebar: = Selecciona qué carpetas mostrar en la barra lateral de Lugares:
+
+# === Carpetas adicionales ===
+Desktop = Escritorio
+Templates = Plantillas
+Public = Público
+Recent = Recientes
+
+# === Mensajes adicionales favoritos ===
+Search applications... = Buscar aplicaciones...
+Select = Seleccionar
+Select = Seleccionar
+Cancel = Cancelar
+
+# === Mensajes de Configuración ===
+Select profile picture = Seleccionar foto de perfil
+Select profile manager = Seleccionar gestor de perfil
+Select shutdown command = Seleccionar comando de apagado
+Select JWM config = Seleccionar configuración JWM
+Select Tint2 config = Seleccionar configuración Tint2
+Select XFCE panel config = Seleccionar configuración de panel XFCE
+Edit Favorite = Editar Favorito
+Edit = Editar
+Browse command = Explorar comando
+Select command = Seleccionar comando
